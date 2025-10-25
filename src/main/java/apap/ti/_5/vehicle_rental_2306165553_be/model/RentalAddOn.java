@@ -11,8 +11,8 @@ import java.util.*;
 @Table(name = "rental_addon")
 public class RentalAddOn {
     @Id
-    @Column(name = "id", nullable = false, unique = true)
-    private String id;
+    @Column(name = "id", nullable = false, unique = true, updatable = false)
+    private UUID id;
 
     @Column(name = "name", nullable = false)
     private String name;

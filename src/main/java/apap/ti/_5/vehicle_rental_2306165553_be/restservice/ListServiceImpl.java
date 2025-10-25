@@ -4,6 +4,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import apap.ti._5.vehicle_rental_2306165553_be.model.RentalVendor;
 import apap.ti._5.vehicle_rental_2306165553_be.repository.RentalVendorRepository;
+import apap.ti._5.vehicle_rental_2306165553_be.model.RentalAddOn;
+import apap.ti._5.vehicle_rental_2306165553_be.repository.RentalAddOnRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import java.util.List;
 import java.util.Map;
@@ -17,6 +19,9 @@ public class ListServiceImpl implements ListService {
 
     @Autowired
     private RentalVendorRepository rentalVendorRepository;
+
+    @Autowired
+    private RentalAddOnRepository rentalAddOnRepository;
 
     @Override
     public List<String> getLocationList() {
@@ -57,5 +62,10 @@ public class ListServiceImpl implements ListService {
     @Override
     public List<String> getBookingStatusOptions() {
         return List.of("Upcoming", "Ongoing", "Done");
+    }
+
+    @Override
+    public List<RentalAddOn> getAllAddOns() {
+        return rentalAddOnRepository.findAll();
     }
 }

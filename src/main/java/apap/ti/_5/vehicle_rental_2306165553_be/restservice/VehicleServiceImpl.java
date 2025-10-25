@@ -6,7 +6,10 @@ import apap.ti._5.vehicle_rental_2306165553_be.repository.VehicleRepository;
 import apap.ti._5.vehicle_rental_2306165553_be.repository.RentalVendorRepository;
 import apap.ti._5.vehicle_rental_2306165553_be.restdto.request.vehicle.CreateVehicleRequestDTO;
 import apap.ti._5.vehicle_rental_2306165553_be.restdto.request.vehicle.UpdateVehicleRequestDTO;
+import apap.ti._5.vehicle_rental_2306165553_be.restdto.request.vehicle.SearchVehicleRequestDTO;
 import apap.ti._5.vehicle_rental_2306165553_be.restdto.response.vehicle.VehicleResponseDTO;
+import apap.ti._5.vehicle_rental_2306165553_be.restdto.response.vehicle.VehicleSearchResultDTO;
+import apap.ti._5.vehicle_rental_2306165553_be.model.RentalBooking;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
@@ -14,6 +17,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.Year;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class VehicleServiceImpl implements VehicleService {
@@ -25,6 +29,9 @@ public class VehicleServiceImpl implements VehicleService {
 
     @Autowired
     private ListService listService;
+
+    @Autowired
+    private apap.ti._5.vehicle_rental_2306165553_be.repository.RentalBookingRepository rentalBookingRepository;
 
     @Override
     public List<VehicleResponseDTO> getAllVehicle(String search, String filterByType) {
@@ -212,6 +219,56 @@ public class VehicleServiceImpl implements VehicleService {
         vehicle.setDeletedAt(new Date());
         vehicle.setStatus("Unavailable");
         vehicleRepository.save(vehicle);
+    }
+
+    @Override
+    public List<VehicleSearchResultDTO> searchAvailableVehicles(SearchVehicleRequestDTO dto) {
+        List<Vehicle> vehicles = vehicleRepository.findAll()
+            .stream()
+            .filter(v -> v.getDeletedAt() == null)
+            .filter(v -> v.getStatus().equalsIgnoreCase("Available"))
+            .filter(v -> {
+                if (v.getRentalVendor() == null) return false;
+                List<String> locations = v.getRentalVendor().getListOfLocations();
+                return locations.contains(dto.getPickUpLocation()) && locations.contains(dto.getDropOffLocation());
+            })
+            .filter(v -> v.getCapacity() >= dto.getCapacityNeeded())
+            .filter(v -> v.getTransmission().equalsIgnoreCase(dto.getTransmissionNeeded()))
+            .collect(Collectors.toList());
+
+        vehicles = vehicles.stream().filter(v -> {
+            List<RentalBooking> bookings = rentalBookingRepository.findByVehicle_IdAndStatusIn(
+                v.getId(), List.of("Upcoming", "Ongoing")
+            );
+            for (RentalBooking booking : bookings) {
+                if (dto.getPickUpTime().before(booking.getDropOffTime()) &&
+                    dto.getDropOffTime().after(booking.getPickUpTime())) {
+                    return false; 
+                }
+            }
+            return true;
+        }).collect(Collectors.toList());
+
+        long diffMillis = dto.getDropOffTime().getTime() - dto.getPickUpTime().getTime();
+        final int days = Math.max(1, (int) Math.ceil(diffMillis / (1000.0 * 60 * 60 * 24)));
+        
+        List<VehicleSearchResultDTO> result = vehicles.stream()
+            .map(v -> {
+                VehicleSearchResultDTO res = new VehicleSearchResultDTO();
+                res.setId(v.getId());
+                res.setType(v.getType());
+                res.setBrand(v.getBrand());
+                res.setModel(v.getModel());
+                res.setRentalVendorName(v.getRentalVendor() != null ? v.getRentalVendor().getName() : null);
+                double totalPrice = days * v.getPrice();
+                if (dto.isIncludeDriver()) totalPrice += days * 100_000;
+                res.setTotalPrice(totalPrice);
+                return res;
+            })
+            .sorted(Comparator.comparingDouble(VehicleSearchResultDTO::getTotalPrice))
+            .collect(Collectors.toList());
+
+        return result;
     }
 
     private String generateVehicleId() {

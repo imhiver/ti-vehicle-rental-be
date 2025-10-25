@@ -3,7 +3,9 @@ package apap.ti._5.vehicle_rental_2306165553_be.restcontroller;
 import apap.ti._5.vehicle_rental_2306165553_be.restservice.VehicleService;
 import apap.ti._5.vehicle_rental_2306165553_be.restdto.request.vehicle.CreateVehicleRequestDTO;
 import apap.ti._5.vehicle_rental_2306165553_be.restdto.request.vehicle.UpdateVehicleRequestDTO;
+import apap.ti._5.vehicle_rental_2306165553_be.restdto.request.vehicle.SearchVehicleRequestDTO;
 import apap.ti._5.vehicle_rental_2306165553_be.restdto.response.vehicle.VehicleResponseDTO;
+import apap.ti._5.vehicle_rental_2306165553_be.restdto.response.vehicle.VehicleSearchResultDTO;
 import apap.ti._5.vehicle_rental_2306165553_be.restdto.response.BaseResponseDTO;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,6 +25,7 @@ public class VehicleController {
     public static final String CREATE_VEHICLE =  "/create";
     public static final String UPDATE_VEHICLE =  "/{id}/update";
     public static final String DELETE_VEHICLE =  "/{id}/delete";
+    public static final String SEARCH_VEHICLE =  "/search";
 
     @Autowired
     private VehicleService vehicleService;
@@ -158,5 +161,26 @@ public class VehicleController {
         baseResponseDTO.setTimestamp(new Date());
         baseResponseDTO.setData(null);
         return new ResponseEntity<>(baseResponseDTO, HttpStatus.OK);
+    }
+
+    @PostMapping(SEARCH_VEHICLE)
+    public ResponseEntity<BaseResponseDTO<List<VehicleSearchResultDTO>>> searchVehicles(
+            @RequestBody SearchVehicleRequestDTO dto) {
+        var baseResponseDTO = new BaseResponseDTO<List<VehicleSearchResultDTO>>();
+        try {
+            List<VehicleSearchResultDTO> vehicles = vehicleService.searchAvailableVehicles(dto);
+
+            baseResponseDTO.setStatus(HttpStatus.OK.value());
+            baseResponseDTO.setMessage("Search result retrieved successfully");
+            baseResponseDTO.setTimestamp(new Date());
+            baseResponseDTO.setData(vehicles);
+            return new ResponseEntity<>(baseResponseDTO, HttpStatus.OK);
+        } catch (Exception e) {
+            baseResponseDTO.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
+            baseResponseDTO.setMessage("Failed to search vehicles: " + e.getMessage());
+            baseResponseDTO.setTimestamp(new Date());
+            baseResponseDTO.setData(null);
+            return new ResponseEntity<>(baseResponseDTO, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 }

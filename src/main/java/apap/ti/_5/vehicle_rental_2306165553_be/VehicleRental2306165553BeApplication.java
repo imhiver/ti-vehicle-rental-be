@@ -52,7 +52,7 @@ public class VehicleRental2306165553BeApplication {
 			System.out.println("Generating dummy rental add-ons...");
 			for (int i = 0; i < 10; i++) {
 				RentalAddOn rentalAddOn = new RentalAddOn();
-				rentalAddOn.setId(UUID.randomUUID().toString());
+				rentalAddOn.setId(UUID.randomUUID());
 				rentalAddOn.setName(faker.commerce().productName());
 				rentalAddOn.setPrice(faker.number().randomDouble(2, 10, 1000));
 
