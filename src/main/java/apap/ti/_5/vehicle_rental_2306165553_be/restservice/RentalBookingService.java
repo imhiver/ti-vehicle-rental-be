@@ -8,4 +8,5 @@ import apap.ti._5.vehicle_rental_2306165553_be.restdto.response.rentalbooking.Re
 public interface RentalBookingService {
     List<RentalBookingResponseDTO> getAllBookings(String search);
     RentalBookingResponseDTO createBooking(CreateRentalBookingRequestDTO dto) throws Exception;
+    RentalBookingResponseDTO getBookingById(String id) throws Exception;
 }

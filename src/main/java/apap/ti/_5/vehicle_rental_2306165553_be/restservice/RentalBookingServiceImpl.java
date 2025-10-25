@@ -52,16 +52,14 @@ public class RentalBookingServiceImpl implements RentalBookingService {
             .collect(Collectors.toList());
     }
 
-    private String determineBookingStatus(Date pickUpTime, Date dropOffTime) {
-        Date now = new Date();
-        if (now.before(pickUpTime)) {
-            return "Upcoming";
-        } else if (now.after(dropOffTime) || now.equals(dropOffTime)) {
-            return "Done";
-        } else {
-            return "Ongoing";
-        }
+    @Override
+    public RentalBookingResponseDTO getBookingById(String id) throws Exception {
+        RentalBooking booking = rentalBookingRepository.findById(id)
+            .filter(b -> b.getDeletedAt() == null)
+            .orElseThrow(() -> new Exception("Booking not found"));
+        return mapToRentalBookingResponseDTO(booking);
     }
+
 
     @Override
     public RentalBookingResponseDTO createBooking(CreateRentalBookingRequestDTO dto) throws Exception {
@@ -140,5 +138,16 @@ public class RentalBookingServiceImpl implements RentalBookingService {
             : new ArrayList<>();
         dto.setAddOnNames(addOnNames);
         return dto;
+    }
+
+    private String determineBookingStatus(Date pickUpTime, Date dropOffTime) {
+        Date now = new Date();
+        if (now.before(pickUpTime)) {
+            return "Upcoming";
+        } else if (now.after(dropOffTime) || now.equals(dropOffTime)) {
+            return "Done";
+        } else {
+            return "Ongoing";
+        }
     }
 }

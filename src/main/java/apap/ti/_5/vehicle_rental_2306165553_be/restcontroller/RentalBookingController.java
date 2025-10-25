@@ -43,6 +43,28 @@ public class RentalBookingController {
         return new ResponseEntity<>(baseResponseDTO, HttpStatus.OK);
     }
 
+    @GetMapping(VIEW_BOOKING_DETAIL)
+    public ResponseEntity<BaseResponseDTO<RentalBookingResponseDTO>> getBookingById(@PathVariable("id") String id) {
+        var baseResponseDTO = new BaseResponseDTO<RentalBookingResponseDTO>();
+
+        RentalBookingResponseDTO booking;
+        try {
+            booking = rentalBookingService.getBookingById(id);
+        } catch (Exception e) {
+            baseResponseDTO.setStatus(HttpStatus.NOT_FOUND.value());
+            baseResponseDTO.setMessage("Booking not found: " + e.getMessage());
+            baseResponseDTO.setTimestamp(new Date());
+            baseResponseDTO.setData(null);
+            return new ResponseEntity<>(baseResponseDTO, HttpStatus.NOT_FOUND);
+        }
+
+        baseResponseDTO.setStatus(HttpStatus.OK.value());
+        baseResponseDTO.setMessage("Booking retrieved successfully");
+        baseResponseDTO.setTimestamp(new Date());
+        baseResponseDTO.setData(booking);
+        return new ResponseEntity<>(baseResponseDTO, HttpStatus.OK);
+    }
+
     @PostMapping(CREATE_BOOKING)
     public ResponseEntity<BaseResponseDTO<RentalBookingResponseDTO>> createBooking(
             @Valid @RequestBody CreateRentalBookingRequestDTO dto,
