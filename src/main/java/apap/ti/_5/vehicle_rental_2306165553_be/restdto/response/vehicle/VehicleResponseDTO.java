@@ -6,6 +6,7 @@ import lombok.Data;
 public class VehicleResponseDTO {
     private String id;
     private int rentalVendorId;
+    private String rentalVendorName; 
     private String type;
     private String brand;
     private String model;

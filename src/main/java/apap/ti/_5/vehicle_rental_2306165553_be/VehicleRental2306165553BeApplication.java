@@ -31,7 +31,7 @@ public class VehicleRental2306165553BeApplication {
 		return args -> {
 			System.out.println("Generating dummy rental vendors...");
 			Faker faker = new Faker(Locale.of("id_ID"));
-			List<String> provinces = listService.getProvinsiList();
+			List<String> locations = listService.getLocationList();
 
 			for (int i = 0; i < 10; i++) {
 				RentalVendor rentalVendor = new RentalVendor();
@@ -41,7 +41,7 @@ public class VehicleRental2306165553BeApplication {
 				
 				List<String> selectedLocations = new ArrayList<>();
 				for (int j = 0; j < 3; j++) {
-					selectedLocations.add(provinces.get(faker.random().nextInt(provinces.size())));
+					selectedLocations.add(locations.get(faker.random().nextInt(locations.size())));
 				}
 				rentalVendor.setListOfLocations(selectedLocations);
 

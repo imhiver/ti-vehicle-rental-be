@@ -13,6 +13,7 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Date;
+import java.util.List;
 
 @RestController
 @RequestMapping("/vehicles")
@@ -24,6 +25,21 @@ public class VehicleController {
 
     @Autowired
     private VehicleService vehicleService;
+
+    @GetMapping("")
+    public ResponseEntity<BaseResponseDTO<List<VehicleResponseDTO>>> getAllVehicles(
+            @RequestParam(required = false) String search,
+            @RequestParam(required = false) String filterByType) {
+        var baseResponseDTO = new BaseResponseDTO<List<VehicleResponseDTO>>();
+
+        List<VehicleResponseDTO> vehicles = vehicleService.getAllVehicle(search, filterByType);
+
+        baseResponseDTO.setStatus(HttpStatus.OK.value());
+        baseResponseDTO.setMessage("Vehicles retrieved successfully");
+        baseResponseDTO.setTimestamp(new Date());
+        baseResponseDTO.setData(vehicles);
+        return new ResponseEntity<>(baseResponseDTO, HttpStatus.OK);
+    }
 
     @PostMapping(CREATE_VEHICLE)
     public ResponseEntity<BaseResponseDTO<VehicleResponseDTO>> createVehicle(

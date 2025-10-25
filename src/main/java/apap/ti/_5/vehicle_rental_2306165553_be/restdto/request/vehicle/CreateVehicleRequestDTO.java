@@ -5,8 +5,8 @@ import lombok.Data;
 
 @Data
 public class CreateVehicleRequestDTO {
-    @NotNull(message = "Rental vendor ID is required")
-    private int rentalVendorId;
+    @NotBlank(message = "Rental vendor name is required")
+    private String rentalVendorName;
 
     @NotBlank(message = "Type is required")
     private String type;

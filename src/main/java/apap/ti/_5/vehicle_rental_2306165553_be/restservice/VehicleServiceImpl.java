@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
 import java.time.Year;
 
@@ -25,34 +26,81 @@ public class VehicleServiceImpl implements VehicleService {
     private ListService listService;
 
     @Override
+    public List<VehicleResponseDTO> getAllVehicle(String search, String filterByType) {
+        List<VehicleResponseDTO> vehicles = vehicleRepository.findAll()
+            .stream()
+            .filter(v -> v.getDeletedAt() == null)
+            .map(this::mapToVehicleResponseDTO)
+            .toList();
+
+        if (search != null && !search.trim().isEmpty()) {
+            String searchLower = search.toLowerCase();
+            vehicles = vehicles.stream()
+                .filter(v ->
+                    (v.getId() != null && v.getId().toLowerCase().contains(searchLower)) ||
+                    (v.getBrand() != null && v.getBrand().toLowerCase().contains(searchLower)) ||
+                    (v.getModel() != null && v.getModel().toLowerCase().contains(searchLower)) ||
+                    (v.getLicencePlate() != null && v.getLicencePlate().toLowerCase().contains(searchLower)) ||
+                    (v.getType() != null && v.getType().toLowerCase().contains(searchLower)) ||
+                    (v.getLocation() != null && v.getLocation().toLowerCase().contains(searchLower)) ||
+                    (v.getTransmission() != null && v.getTransmission().toLowerCase().contains(searchLower)) ||
+                    (v.getFuelType() != null && v.getFuelType().toLowerCase().contains(searchLower)) ||
+                    (v.getStatus() != null && v.getStatus().toLowerCase().contains(searchLower)) ||
+                    (String.valueOf(v.getCapacity()).contains(searchLower)) ||
+                    (String.valueOf(v.getRentalVendorId()).contains(searchLower)) ||
+                    (String.valueOf(v.getPrice()).contains(searchLower)) ||
+                    (v.getRentalVendorName() != null && v.getRentalVendorName().toLowerCase().contains(searchLower))
+                )
+                .toList();
+        }
+
+        if (filterByType != null && !filterByType.trim().isEmpty()) {
+            vehicles = vehicles.stream()
+                .filter(v -> v.getType().equalsIgnoreCase(filterByType))
+                .toList();
+        }
+
+        return vehicles;
+    }
+
+    @Override
     public VehicleResponseDTO createVehicle(CreateVehicleRequestDTO dto) throws Exception {
+        List<String> errors = new java.util.ArrayList<>();
+
         if (!listService.getVehicleTypeOptions().contains(dto.getType())) {
-            throw new Exception("Tipe kendaraan tidak valid");
+            errors.add("Tipe kendaraan tidak valid");
         }
         if (!listService.getTransmissionOptions().contains(dto.getTransmission())) {
-            throw new Exception("Transmisi kendaraan tidak valid");
+            errors.add("Transmisi kendaraan tidak valid");
         }
         if (!listService.getFuelTypeOptions().contains(dto.getFuelType())) {
-            throw new Exception("Tipe bahan bakar kendaraan tidak valid");
+            errors.add("Tipe bahan bakar kendaraan tidak valid");
         }
 
         int currentYear = Year.now().getValue();
         if (dto.getProductionYear() > currentYear) {
-            throw new Exception("Tahun keluaran kendaraan tidak valid");
+            errors.add("Tahun keluaran kendaraan tidak valid");
         }
 
-        if (vehicleRepository.existsById(dto.getLicencePlate())) {
-            throw new Exception("Nomor plat sudah terdaftar");
+        if (vehicleRepository.existsByLicencePlate(dto.getLicencePlate())) {
+            errors.add("Nomor plat sudah terdaftar");
         }
 
-        Optional<RentalVendor> vendorOpt = rentalVendorRepository.findById(dto.getRentalVendorId());
+        Optional<RentalVendor> vendorOpt = rentalVendorRepository.findAll()
+            .stream()
+            .filter(v -> v.getName().equalsIgnoreCase(dto.getRentalVendorName()))
+            .findFirst();
         if (vendorOpt.isEmpty()) {
-            throw new Exception("Vendor tidak ditemukan");
+            errors.add("Vendor tidak ditemukan");
         }
-        RentalVendor vendor = vendorOpt.get();
 
-        if (!vendor.getListOfLocations().contains(dto.getLocation())) {
-            throw new Exception("Lokasi tidak valid untuk vendor ini");
+        RentalVendor vendor = vendorOpt.orElse(null);
+        if (vendor != null && !vendor.getListOfLocations().contains(dto.getLocation())) {
+            errors.add("Lokasi tidak valid untuk vendor ini");
+        }
+
+        if (!errors.isEmpty()) {
+            throw new Exception(String.join("; ", errors));
         }
 
         String newId = generateVehicleId();
@@ -97,6 +145,7 @@ public class VehicleServiceImpl implements VehicleService {
         VehicleResponseDTO dto = new VehicleResponseDTO();
         dto.setId(vehicle.getId());
         dto.setRentalVendorId(vehicle.getRentalVendor() != null ? vehicle.getRentalVendor().getId() : 0);
+        dto.setRentalVendorName(vehicle.getRentalVendor() != null ? vehicle.getRentalVendor().getName() : null);
         dto.setType(vehicle.getType());
         dto.setBrand(vehicle.getBrand());
         dto.setModel(vehicle.getModel());

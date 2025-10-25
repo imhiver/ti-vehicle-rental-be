@@ -14,7 +14,7 @@ public class ListService {
     @Autowired
     private RestTemplate restTemplate;
     
-    public List<String> getProvinsiList() {
+    public List<String> getLocationList() {
         String url = "https://wilayah.id/api/provinces.json";
         Map<String, Object> response = restTemplate.getForObject(url, Map.class);
         List<Map<String, String>> data = (List<Map<String, String>>) response.get("data");
