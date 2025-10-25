@@ -126,7 +126,7 @@ public class VehicleServiceImpl implements VehicleService {
         vehicle.setTransmission(dto.getTransmission());
         vehicle.setFuelType(dto.getFuelType());
         vehicle.setPrice(dto.getPrice());
-        vehicle.setStatus("AVAILABLE");
+        vehicle.setStatus("Available");
         vehicleRepository.save(vehicle);
 
         return mapToVehicleResponseDTO(vehicle);
