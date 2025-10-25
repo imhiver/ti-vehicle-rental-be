@@ -17,4 +17,5 @@ public class RentalBookingResponseDTO {
     private List<String> addOnNames;
     private boolean includeDriver;
     private String transmissionNeeded;
+    private int capacityNeeded;
 }

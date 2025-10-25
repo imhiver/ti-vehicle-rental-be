@@ -7,6 +7,7 @@ import apap.ti._5.vehicle_rental_2306165553_be.repository.RentalBookingRepositor
 import apap.ti._5.vehicle_rental_2306165553_be.repository.VehicleRepository;
 import apap.ti._5.vehicle_rental_2306165553_be.repository.RentalAddOnRepository;
 import apap.ti._5.vehicle_rental_2306165553_be.restdto.request.rentalbooking.CreateRentalBookingRequestDTO;
+import apap.ti._5.vehicle_rental_2306165553_be.restdto.request.rentalbooking.UpdateRentalBookingRequestDTO;
 import apap.ti._5.vehicle_rental_2306165553_be.restdto.response.rentalbooking.RentalBookingResponseDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -99,6 +100,40 @@ public class RentalBookingServiceImpl implements RentalBookingService {
         booking.setStatus(determineBookingStatus(dto.getPickUpTime(), dto.getDropOffTime()));
         booking.setTotalPrice(total);
         booking.setListOfAddOns(selectedAddOns);
+        booking.setCapacityNeeded(dto.getCapacityNeeded());
+
+        rentalBookingRepository.save(booking);
+
+        return mapToRentalBookingResponseDTO(booking);
+    }
+
+    @Override
+    public RentalBookingResponseDTO updateBooking(String id, UpdateRentalBookingRequestDTO dto) throws Exception {
+        RentalBooking booking = rentalBookingRepository.findById(id)
+            .filter(b -> b.getDeletedAt() == null)
+            .orElseThrow(() -> new Exception("Booking not found"));
+
+        Vehicle vehicle = vehicleRepository.findById(dto.getVehicleId())
+            .filter(v -> v.getDeletedAt() == null)
+            .orElseThrow(() -> new Exception("Vehicle not found"));
+
+        if (vehicle.getRentalVendor() == null) {
+            throw new Exception("Rental vendor not found for vehicle");
+        }
+        List<String> locations = vehicle.getRentalVendor().getListOfLocations();
+        if (!locations.contains(dto.getPickUpLocation()) || !locations.contains(dto.getDropOffLocation())) {
+            throw new Exception("Pick-up or drop-off location is not valid for this vendor");
+        }
+
+        booking.setVehicle(vehicle);
+        booking.setPickUpTime(dto.getPickUpTime());
+        booking.setDropOffTime(dto.getDropOffTime());
+        booking.setPickUpLocation(dto.getPickUpLocation());
+        booking.setDropOffLocation(dto.getDropOffLocation());
+        booking.setIncludeDriver(dto.isIncludeDriver());
+        booking.setTransmissionNeeded(dto.getTransmissionNeeded());
+        booking.setCapacityNeeded(dto.getCapacityNeeded());
+        booking.setTotalPrice(dto.getBaseTotalPrice());
 
         rentalBookingRepository.save(booking);
 
@@ -137,6 +172,7 @@ public class RentalBookingServiceImpl implements RentalBookingService {
             ? booking.getListOfAddOns().stream().map(RentalAddOn::getName).toList()
             : new ArrayList<>();
         dto.setAddOnNames(addOnNames);
+        dto.setCapacityNeeded(booking.getCapacityNeeded());
         return dto;
     }
 

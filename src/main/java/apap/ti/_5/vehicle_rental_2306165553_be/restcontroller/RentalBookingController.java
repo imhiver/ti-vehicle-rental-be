@@ -1,6 +1,7 @@
 package apap.ti._5.vehicle_rental_2306165553_be.restcontroller;
 
 import apap.ti._5.vehicle_rental_2306165553_be.restdto.request.rentalbooking.CreateRentalBookingRequestDTO;
+import apap.ti._5.vehicle_rental_2306165553_be.restdto.request.rentalbooking.UpdateRentalBookingRequestDTO;
 import apap.ti._5.vehicle_rental_2306165553_be.restdto.response.BaseResponseDTO;
 import apap.ti._5.vehicle_rental_2306165553_be.restdto.response.rentalbooking.RentalBookingResponseDTO;
 import apap.ti._5.vehicle_rental_2306165553_be.restservice.RentalBookingService;
@@ -97,6 +98,44 @@ public class RentalBookingController {
 
         baseResponse.setStatus(HttpStatus.OK.value());
         baseResponse.setMessage("Booking created successfully");
+        baseResponse.setTimestamp(new Date());
+        baseResponse.setData(booking);
+        return new ResponseEntity<>(baseResponse, HttpStatus.OK);
+    }
+
+    @PutMapping(UPDATE_BOOKING)
+    public ResponseEntity<BaseResponseDTO<RentalBookingResponseDTO>> updateBooking(
+            @PathVariable("id") String id,
+            @Valid @RequestBody UpdateRentalBookingRequestDTO dto,
+            BindingResult bindingResult) {
+
+        var baseResponse = new BaseResponseDTO<RentalBookingResponseDTO>();
+
+        if (bindingResult.hasFieldErrors()) {
+            StringBuilder errs = new StringBuilder();
+            for (FieldError fe : bindingResult.getFieldErrors()) {
+                errs.append(fe.getDefaultMessage()).append("; ");
+            }
+            baseResponse.setStatus(HttpStatus.BAD_REQUEST.value());
+            baseResponse.setMessage(errs.toString());
+            baseResponse.setTimestamp(new Date());
+            baseResponse.setData(null);
+            return new ResponseEntity<>(baseResponse, HttpStatus.BAD_REQUEST);
+        }
+
+        RentalBookingResponseDTO booking;
+        try {
+            booking = rentalBookingService.updateBooking(id, dto);
+        } catch (Exception e) {
+            baseResponse.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
+            baseResponse.setMessage("Failed to update booking: " + e.getMessage());
+            baseResponse.setTimestamp(new Date());
+            baseResponse.setData(null);
+            return new ResponseEntity<>(baseResponse, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+
+        baseResponse.setStatus(HttpStatus.OK.value());
+        baseResponse.setMessage("Booking updated successfully");
         baseResponse.setTimestamp(new Date());
         baseResponse.setData(booking);
         return new ResponseEntity<>(baseResponse, HttpStatus.OK);
