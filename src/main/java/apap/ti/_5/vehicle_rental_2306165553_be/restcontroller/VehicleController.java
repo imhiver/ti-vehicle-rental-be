@@ -2,6 +2,7 @@ package apap.ti._5.vehicle_rental_2306165553_be.restcontroller;
 
 import apap.ti._5.vehicle_rental_2306165553_be.restservice.VehicleService;
 import apap.ti._5.vehicle_rental_2306165553_be.restdto.request.vehicle.CreateVehicleRequestDTO;
+import apap.ti._5.vehicle_rental_2306165553_be.restdto.request.vehicle.UpdateVehicleRequestDTO;
 import apap.ti._5.vehicle_rental_2306165553_be.restdto.response.vehicle.VehicleResponseDTO;
 import apap.ti._5.vehicle_rental_2306165553_be.restdto.response.BaseResponseDTO;
 import jakarta.validation.Valid;
@@ -20,8 +21,8 @@ import java.util.List;
 public class VehicleController {
     public static final String VIEW_VEHICLE_DETAIL =  "/{id}";
     public static final String CREATE_VEHICLE =  "/create";
-    public static final String UPDATE_VEHICLE =  "/update";
-    public static final String DELETE_VEHICLE =  "/delete";
+    public static final String UPDATE_VEHICLE =  "/{id}/update";
+    public static final String DELETE_VEHICLE =  "/{id}/delete";
 
     @Autowired
     private VehicleService vehicleService;
@@ -95,6 +96,44 @@ public class VehicleController {
 
         baseResponseDTO.setStatus(HttpStatus.OK.value());
         baseResponseDTO.setMessage("Vehicle created successfully");
+        baseResponseDTO.setTimestamp(new Date());
+        baseResponseDTO.setData(vehicle);
+        return new ResponseEntity<>(baseResponseDTO, HttpStatus.OK);
+    }
+
+    @PostMapping(UPDATE_VEHICLE)
+    public ResponseEntity<BaseResponseDTO<VehicleResponseDTO>> updateVehicle(
+            @PathVariable("id") String id,
+            @Valid @RequestBody UpdateVehicleRequestDTO dto,
+            BindingResult bindingResult) {
+
+        var baseResponseDTO = new BaseResponseDTO<VehicleResponseDTO>();
+
+        if (bindingResult.hasFieldErrors()) {
+            StringBuilder errorMessages = new StringBuilder();
+            for (FieldError error : bindingResult.getFieldErrors()) {
+                errorMessages.append(error.getDefaultMessage()).append("; ");
+            }
+            baseResponseDTO.setStatus(HttpStatus.BAD_REQUEST.value());
+            baseResponseDTO.setMessage(errorMessages.toString());
+            baseResponseDTO.setTimestamp(new Date());
+            baseResponseDTO.setData(null);
+            return new ResponseEntity<>(baseResponseDTO, HttpStatus.BAD_REQUEST);
+        }
+
+        VehicleResponseDTO vehicle;
+        try {
+            vehicle = vehicleService.updateVehicle(id, dto);
+        } catch (Exception e) {
+            baseResponseDTO.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
+            baseResponseDTO.setMessage("Failed to update vehicle: " + e.getMessage());
+            baseResponseDTO.setTimestamp(new Date());
+            baseResponseDTO.setData(null);
+            return new ResponseEntity<>(baseResponseDTO, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+
+        baseResponseDTO.setStatus(HttpStatus.OK.value());
+        baseResponseDTO.setMessage("Vehicle updated successfully");
         baseResponseDTO.setTimestamp(new Date());
         baseResponseDTO.setData(vehicle);
         return new ResponseEntity<>(baseResponseDTO, HttpStatus.OK);

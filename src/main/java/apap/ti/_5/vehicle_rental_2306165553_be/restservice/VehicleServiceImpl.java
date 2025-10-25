@@ -5,6 +5,7 @@ import apap.ti._5.vehicle_rental_2306165553_be.model.RentalVendor;
 import apap.ti._5.vehicle_rental_2306165553_be.repository.VehicleRepository;
 import apap.ti._5.vehicle_rental_2306165553_be.repository.RentalVendorRepository;
 import apap.ti._5.vehicle_rental_2306165553_be.restdto.request.vehicle.CreateVehicleRequestDTO;
+import apap.ti._5.vehicle_rental_2306165553_be.restdto.request.vehicle.UpdateVehicleRequestDTO;
 import apap.ti._5.vehicle_rental_2306165553_be.restdto.response.vehicle.VehicleResponseDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
@@ -71,6 +72,13 @@ public class VehicleServiceImpl implements VehicleService {
             .orElseThrow(() -> new Exception("Vehicle not found"));
     }
 
+    private Optional<RentalVendor> findVendorByName(String name) {
+        return rentalVendorRepository.findAll()
+            .stream()
+            .filter(v -> v.getName().equalsIgnoreCase(name))
+            .findFirst();
+    }
+
     @Override
     public VehicleResponseDTO createVehicle(CreateVehicleRequestDTO dto) throws Exception {
         List<String> errors = new java.util.ArrayList<>();
@@ -94,10 +102,7 @@ public class VehicleServiceImpl implements VehicleService {
             errors.add("Nomor plat sudah terdaftar");
         }
 
-        Optional<RentalVendor> vendorOpt = rentalVendorRepository.findAll()
-            .stream()
-            .filter(v -> v.getName().equalsIgnoreCase(dto.getRentalVendorName()))
-            .findFirst();
+        Optional<RentalVendor> vendorOpt = findVendorByName(dto.getRentalVendorName());
         if (vendorOpt.isEmpty()) {
             errors.add("Vendor tidak ditemukan");
         }
@@ -127,6 +132,68 @@ public class VehicleServiceImpl implements VehicleService {
         vehicle.setFuelType(dto.getFuelType());
         vehicle.setPrice(dto.getPrice());
         vehicle.setStatus("Available");
+        vehicleRepository.save(vehicle);
+
+        return mapToVehicleResponseDTO(vehicle);
+    }
+
+    @Override
+    public VehicleResponseDTO updateVehicle(String id, UpdateVehicleRequestDTO dto) throws Exception {
+        Vehicle vehicle = vehicleRepository.findById(id)
+                .filter(v -> v.getDeletedAt() == null)
+                .orElseThrow(() -> new Exception("Vehicle not found"));
+                
+        List<String> errors = new java.util.ArrayList<>();
+        
+        if ("In Use".equalsIgnoreCase(vehicle.getStatus())) {
+            errors.add("Kendaraan sedang disewa, perubahan tidak diizinkan");
+        }
+
+        if (!listService.getVehicleStatusOptions().contains(dto.getStatus())) {
+            errors.add("Status kendaraan tidak valid");
+        }
+
+        if (!listService.getVehicleTypeOptions().contains(dto.getType())) {
+            errors.add("Tipe kendaraan tidak valid");
+        }
+        if (!listService.getTransmissionOptions().contains(dto.getTransmission())) {
+            errors.add("Transmisi kendaraan tidak valid");
+        }
+        if (!listService.getFuelTypeOptions().contains(dto.getFuelType())) {
+            errors.add("Tipe bahan bakar kendaraan tidak valid");
+        }
+
+        int currentYear = Year.now().getValue();
+        if (dto.getProductionYear() > currentYear) {
+            errors.add("Tahun keluaran kendaraan tidak valid");
+        }
+
+        Optional<RentalVendor> vendorOpt = findVendorByName(dto.getRentalVendorName());
+        if (vendorOpt.isEmpty()) {
+            errors.add("Vendor tidak ditemukan");
+        }
+
+        RentalVendor vendor = vendorOpt.orElse(null);
+        if (vendor != null && !vendor.getListOfLocations().contains(dto.getLocation())) {
+            errors.add("Lokasi tidak valid untuk vendor ini");
+        }
+
+        if (!errors.isEmpty()) {
+            throw new Exception(String.join("; ", errors));
+        }
+
+        vehicle.setRentalVendor(vendor);
+        vehicle.setType(dto.getType());
+        vehicle.setBrand(dto.getBrand());
+        vehicle.setModel(dto.getModel());
+        vehicle.setProductionYear(dto.getProductionYear());
+        vehicle.setLocation(dto.getLocation());
+        vehicle.setLicencePlate(dto.getLicencePlate());
+        vehicle.setCapacity(dto.getCapacity());
+        vehicle.setTransmission(dto.getTransmission());
+        vehicle.setFuelType(dto.getFuelType());
+        vehicle.setPrice(dto.getPrice());
+        vehicle.setStatus(dto.getStatus());
         vehicleRepository.save(vehicle);
 
         return mapToVehicleResponseDTO(vehicle);
