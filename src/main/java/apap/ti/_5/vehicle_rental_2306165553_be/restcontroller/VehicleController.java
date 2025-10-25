@@ -101,7 +101,7 @@ public class VehicleController {
         return new ResponseEntity<>(baseResponseDTO, HttpStatus.OK);
     }
 
-    @PostMapping(UPDATE_VEHICLE)
+    @PutMapping(UPDATE_VEHICLE)
     public ResponseEntity<BaseResponseDTO<VehicleResponseDTO>> updateVehicle(
             @PathVariable("id") String id,
             @Valid @RequestBody UpdateVehicleRequestDTO dto,
