@@ -138,4 +138,25 @@ public class VehicleController {
         baseResponseDTO.setData(vehicle);
         return new ResponseEntity<>(baseResponseDTO, HttpStatus.OK);
     }
+
+    @DeleteMapping(DELETE_VEHICLE)
+    public ResponseEntity<BaseResponseDTO<Void>> deleteVehicle(@PathVariable("id") String id) {
+        var baseResponseDTO = new BaseResponseDTO<Void>();
+
+        try {
+            vehicleService.deleteVehicle(id);
+        } catch (Exception e) {
+            baseResponseDTO.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
+            baseResponseDTO.setMessage("Failed to delete vehicle: " + e.getMessage());
+            baseResponseDTO.setTimestamp(new Date());
+            baseResponseDTO.setData(null);
+            return new ResponseEntity<>(baseResponseDTO, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+
+        baseResponseDTO.setStatus(HttpStatus.OK.value());
+        baseResponseDTO.setMessage("Vehicle deleted successfully");
+        baseResponseDTO.setTimestamp(new Date());
+        baseResponseDTO.setData(null);
+        return new ResponseEntity<>(baseResponseDTO, HttpStatus.OK);
+    }
 }

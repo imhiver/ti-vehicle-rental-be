@@ -11,9 +11,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-import java.util.Optional;
+
 import java.time.Year;
+import java.util.*;
 
 @Service
 public class VehicleServiceImpl implements VehicleService {
@@ -144,7 +144,7 @@ public class VehicleServiceImpl implements VehicleService {
                 .orElseThrow(() -> new Exception("Vehicle not found"));
                 
         List<String> errors = new java.util.ArrayList<>();
-        
+
         if ("In Use".equalsIgnoreCase(vehicle.getStatus())) {
             errors.add("Kendaraan sedang disewa, perubahan tidak diizinkan");
         }
@@ -197,6 +197,21 @@ public class VehicleServiceImpl implements VehicleService {
         vehicleRepository.save(vehicle);
 
         return mapToVehicleResponseDTO(vehicle);
+    }
+
+    @Override
+    public void deleteVehicle(String id) throws Exception {
+        Vehicle vehicle = vehicleRepository.findById(id)
+                .filter(v -> v.getDeletedAt() == null)
+                .orElseThrow(() -> new Exception("Vehicle not found"));
+
+        if ("In Use".equalsIgnoreCase(vehicle.getStatus())) {
+            throw new Exception("Kendaraan sedang disewa, penghapusan tidak diizinkan");
+        }
+
+        vehicle.setDeletedAt(new Date());
+        vehicle.setStatus("Unavailable");
+        vehicleRepository.save(vehicle);
     }
 
     private String generateVehicleId() {

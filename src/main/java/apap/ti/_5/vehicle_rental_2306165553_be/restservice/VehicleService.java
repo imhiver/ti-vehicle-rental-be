@@ -11,4 +11,5 @@ public interface VehicleService {
     VehicleResponseDTO getVehicleById(String id) throws Exception;
     VehicleResponseDTO createVehicle(CreateVehicleRequestDTO dto) throws Exception;
     VehicleResponseDTO updateVehicle(String id, UpdateVehicleRequestDTO dto) throws Exception;
+    void deleteVehicle(String id) throws Exception;
 }
