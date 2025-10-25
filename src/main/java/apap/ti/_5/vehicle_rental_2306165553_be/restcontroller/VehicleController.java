@@ -41,6 +41,28 @@ public class VehicleController {
         return new ResponseEntity<>(baseResponseDTO, HttpStatus.OK);
     }
 
+    @GetMapping(VIEW_VEHICLE_DETAIL)
+    public ResponseEntity<BaseResponseDTO<VehicleResponseDTO>> getVehicleById(@PathVariable("id") String id) {
+        var baseResponseDTO = new BaseResponseDTO<VehicleResponseDTO>();
+
+        VehicleResponseDTO vehicle;
+        try {
+            vehicle = vehicleService.getVehicleById(id);
+        } catch (Exception e) {
+            baseResponseDTO.setStatus(HttpStatus.NOT_FOUND.value());
+            baseResponseDTO.setMessage("Vehicle not found: " + e.getMessage());
+            baseResponseDTO.setTimestamp(new Date());
+            baseResponseDTO.setData(null);
+            return new ResponseEntity<>(baseResponseDTO, HttpStatus.NOT_FOUND);
+        }
+
+        baseResponseDTO.setStatus(HttpStatus.OK.value());
+        baseResponseDTO.setMessage("Vehicle retrieved successfully");
+        baseResponseDTO.setTimestamp(new Date());
+        baseResponseDTO.setData(vehicle);
+        return new ResponseEntity<>(baseResponseDTO, HttpStatus.OK);
+    }
+
     @PostMapping(CREATE_VEHICLE)
     public ResponseEntity<BaseResponseDTO<VehicleResponseDTO>> createVehicle(
             @Valid @RequestBody CreateVehicleRequestDTO dto,

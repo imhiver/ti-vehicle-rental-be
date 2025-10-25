@@ -7,5 +7,6 @@ import apap.ti._5.vehicle_rental_2306165553_be.restdto.response.vehicle.VehicleR
 
 public interface VehicleService {
     List<VehicleResponseDTO> getAllVehicle(String search, String filterByType);
+    VehicleResponseDTO getVehicleById(String id) throws Exception;
     VehicleResponseDTO createVehicle(CreateVehicleRequestDTO dto) throws Exception;
 }

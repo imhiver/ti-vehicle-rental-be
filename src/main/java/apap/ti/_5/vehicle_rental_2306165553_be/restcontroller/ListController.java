@@ -18,4 +18,10 @@ public class ListController {
     public ResponseEntity<List<String>> getLocations() {
         return ResponseEntity.ok(listService.getLocationList());
     }
+
+    @GetMapping("/rental-vendors")
+    public ResponseEntity<List<String>> getRentalVendors() {
+        return ResponseEntity.ok(listService.getAllRentalVendorNames());
+    }
+
 }

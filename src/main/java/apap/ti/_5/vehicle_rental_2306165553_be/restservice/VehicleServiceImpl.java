@@ -64,6 +64,14 @@ public class VehicleServiceImpl implements VehicleService {
     }
 
     @Override
+    public VehicleResponseDTO getVehicleById(String id) throws Exception {
+        return vehicleRepository.findById(id)
+            .filter(v -> v.getDeletedAt() == null)
+            .map(this::mapToVehicleResponseDTO)
+            .orElseThrow(() -> new Exception("Vehicle not found"));
+    }
+
+    @Override
     public VehicleResponseDTO createVehicle(CreateVehicleRequestDTO dto) throws Exception {
         List<String> errors = new java.util.ArrayList<>();
 
