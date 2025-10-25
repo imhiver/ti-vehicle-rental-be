@@ -59,6 +59,9 @@ public class RentalBooking {
     @Column(name = "updated_at", nullable = false)
     private Date updatedAt;
 
+    @Column(name = "deleted_at", nullable = true)
+    private Date deletedAt;
+
     @PrePersist
     protected void onCreate() {
         createdAt = new Date();

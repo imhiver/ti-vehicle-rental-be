@@ -21,7 +21,29 @@ public class RentalBookingController {
     @Autowired
     private RentalBookingService rentalBookingService;
 
-    @PostMapping("/create")
+    public static final String VIEW_BOOKING_DETAIL =  "/{id}";
+    public static final String CREATE_BOOKING =  "/create";
+    public static final String UPDATE_BOOKING =  "/{id}/update";
+    public static final String DELETE_BOOKING =  "/{id}/delete";
+    public static final String SEARCH_BOOKING =  "/search";
+
+
+    @GetMapping("")
+    public ResponseEntity<BaseResponseDTO<List<RentalBookingResponseDTO>>> getAllBookings(
+        @RequestParam(required = false) String search
+    ) {
+        var baseResponseDTO = new BaseResponseDTO<List<RentalBookingResponseDTO>>();
+
+        List<RentalBookingResponseDTO> bookings = rentalBookingService.getAllBookings(search);
+
+        baseResponseDTO.setStatus(HttpStatus.OK.value());
+        baseResponseDTO.setMessage("Bookings retrieved successfully");
+        baseResponseDTO.setTimestamp(new Date());
+        baseResponseDTO.setData(bookings);
+        return new ResponseEntity<>(baseResponseDTO, HttpStatus.OK);
+    }
+
+    @PostMapping(CREATE_BOOKING)
     public ResponseEntity<BaseResponseDTO<RentalBookingResponseDTO>> createBooking(
             @Valid @RequestBody CreateRentalBookingRequestDTO dto,
             BindingResult bindingResult) {

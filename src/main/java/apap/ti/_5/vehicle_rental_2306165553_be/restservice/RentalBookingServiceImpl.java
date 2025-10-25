@@ -26,6 +26,32 @@ public class RentalBookingServiceImpl implements RentalBookingService {
     @Autowired
     private RentalAddOnRepository rentalAddOnRepository;
 
+    @Override
+    public List<RentalBookingResponseDTO> getAllBookings(String search) {
+        List<RentalBooking> bookings = rentalBookingRepository.findAll()
+            .stream()
+            .filter(b -> b.getDeletedAt() == null)
+            .collect(Collectors.toList());
+
+        if (search != null && !search.isEmpty()) {
+            String keyword = search.toLowerCase();
+            bookings = bookings.stream()
+                .filter(b ->
+                    (b.getId() != null && b.getId().toLowerCase().contains(keyword)) ||
+                    (b.getPickUpLocation() != null && b.getPickUpLocation().toLowerCase().contains(keyword)) ||
+                    (b.getDropOffLocation() != null && b.getDropOffLocation().toLowerCase().contains(keyword)) ||
+                    (b.getStatus() != null && b.getStatus().toLowerCase().contains(keyword)) ||
+                    (b.getVehicle() != null && b.getVehicle().getId() != null && b.getVehicle().getId().toLowerCase().contains(keyword)) ||
+                    (String.valueOf(b.getTotalPrice()).contains(keyword))
+                )
+                .collect(Collectors.toList());
+        }
+
+        return bookings.stream()
+            .map(this::mapToRentalBookingResponseDTO)
+            .collect(Collectors.toList());
+    }
+
     private String determineBookingStatus(Date pickUpTime, Date dropOffTime) {
         Date now = new Date();
         if (now.before(pickUpTime)) {
