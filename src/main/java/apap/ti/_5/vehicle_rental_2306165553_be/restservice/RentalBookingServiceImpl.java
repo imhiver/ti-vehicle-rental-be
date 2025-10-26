@@ -12,7 +12,6 @@ import apap.ti._5.vehicle_rental_2306165553_be.restdto.request.rentalbooking.Upd
 import apap.ti._5.vehicle_rental_2306165553_be.restdto.request.rentalbooking.UpdateBookingAddOnsRequestDTO;
 import apap.ti._5.vehicle_rental_2306165553_be.restdto.response.rentalbooking.RentalBookingResponseDTO;
 import apap.ti._5.vehicle_rental_2306165553_be.restdto.response.rentalbooking.BookingChartResponseDTO;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -20,15 +19,19 @@ import java.util.stream.Collectors;
 
 @Service
 public class RentalBookingServiceImpl implements RentalBookingService {
+    private final RentalBookingRepository rentalBookingRepository;
+    private final VehicleRepository vehicleRepository;
+    private final RentalAddOnRepository rentalAddOnRepository;
 
-    @Autowired
-    private RentalBookingRepository rentalBookingRepository;
-
-    @Autowired
-    private VehicleRepository vehicleRepository;
-
-    @Autowired
-    private RentalAddOnRepository rentalAddOnRepository;
+    public RentalBookingServiceImpl(
+        RentalBookingRepository rentalBookingRepository,
+        VehicleRepository vehicleRepository,
+        RentalAddOnRepository rentalAddOnRepository
+    ) {
+        this.rentalBookingRepository = rentalBookingRepository;
+        this.vehicleRepository = vehicleRepository;
+        this.rentalAddOnRepository = rentalAddOnRepository;
+    }
 
     @Override
     public List<RentalBookingResponseDTO> getAllBookings(String search) {
