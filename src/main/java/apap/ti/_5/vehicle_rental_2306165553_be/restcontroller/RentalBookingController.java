@@ -94,11 +94,11 @@ public class RentalBookingController {
         try {
             booking = rentalBookingService.createBooking(dto);
         } catch (Exception e) {
-            baseResponse.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
+            baseResponse.setStatus(HttpStatus.BAD_REQUEST.value());
             baseResponse.setMessage("Failed to create booking: " + e.getMessage());
             baseResponse.setTimestamp(new Date());
             baseResponse.setData(null);
-            return new ResponseEntity<>(baseResponse, HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>(baseResponse, HttpStatus.BAD_REQUEST);
         }
 
         baseResponse.setStatus(HttpStatus.OK.value());

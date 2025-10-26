@@ -33,21 +33,25 @@ public class VehicleRental2306165553BeApplication {
 			Faker faker = new Faker(Locale.of("id_ID"));
 			List<String> locations = listService.getLocationList();
 
-			for (int i = 0; i < 10; i++) {
-				RentalVendor rentalVendor = new RentalVendor();
-				rentalVendor.setName(faker.company().name());
-				rentalVendor.setEmail(faker.internet().emailAddress());
-				rentalVendor.setPhone(faker.phoneNumber().phoneNumber());
-				
-				List<String> selectedLocations = new ArrayList<>();
-				for (int j = 0; j < 3; j++) {
-					selectedLocations.add(locations.get(faker.random().nextInt(locations.size())));
-				}
-				rentalVendor.setListOfLocations(selectedLocations);
+			if (locations == null || locations.isEmpty()) {
+				System.out.println("No locations available, skipping dummy rental vendor generation.");
+			} else {
+				for (int i = 0; i < 10; i++) {
+					RentalVendor rentalVendor = new RentalVendor();
+					rentalVendor.setName(faker.company().name());
+					rentalVendor.setEmail(faker.internet().emailAddress());
+					rentalVendor.setPhone(faker.phoneNumber().phoneNumber());
+					
+					List<String> selectedLocations = new ArrayList<>();
+					for (int j = 0; j < 3; j++) {
+						selectedLocations.add(locations.get(faker.random().nextInt(locations.size())));
+					}
+					rentalVendor.setListOfLocations(selectedLocations);
 
-				rentalVendorRepository.save(rentalVendor);
+					rentalVendorRepository.save(rentalVendor);
+				}
+				System.out.println("Dummy rental vendor data generation complete.");
 			}
-			System.out.println("Dummy rental vendor data generation complete.");
 
 			System.out.println("Generating dummy rental add-ons...");
 			for (int i = 0; i < 10; i++) {
