@@ -8,6 +8,8 @@ import apap.ti._5.vehicle_rental_2306165553_be.repository.VehicleRepository;
 import apap.ti._5.vehicle_rental_2306165553_be.repository.RentalAddOnRepository;
 import apap.ti._5.vehicle_rental_2306165553_be.restdto.request.rentalbooking.CreateRentalBookingRequestDTO;
 import apap.ti._5.vehicle_rental_2306165553_be.restdto.request.rentalbooking.UpdateRentalBookingRequestDTO;
+import apap.ti._5.vehicle_rental_2306165553_be.restdto.request.rentalbooking.UpdateBookingStatusRequestDTO;
+import apap.ti._5.vehicle_rental_2306165553_be.restdto.request.rentalbooking.UpdateBookingAddOnsRequestDTO;
 import apap.ti._5.vehicle_rental_2306165553_be.restdto.response.rentalbooking.RentalBookingResponseDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -89,6 +91,17 @@ public class RentalBookingServiceImpl implements RentalBookingService {
         }
 
         RentalBooking booking = new RentalBooking();
+        String status = determineBookingStatus(booking.getPickUpTime(), booking.getDropOffTime());
+        if (status.equals("Ongoing")) {
+            List<RentalBooking> ongoingBookings = rentalBookingRepository.findByVehicle_IdAndStatusIn(
+                vehicle.getId(), List.of("Ongoing")
+            );
+            if (!ongoingBookings.isEmpty()) {
+                throw new Exception("Kendaraan masih digunakan oleh pesanan lain yang Ongoing. Tunggu hingga pesanan sebelumnya selesai.");
+            }
+            vehicle.setStatus("In Use");
+            
+        }
         booking.setId(generateBookingId());
         booking.setVehicle(vehicle);
         booking.setPickUpTime(dto.getPickUpTime());
@@ -101,6 +114,7 @@ public class RentalBookingServiceImpl implements RentalBookingService {
         booking.setTotalPrice(total);
         booking.setListOfAddOns(selectedAddOns);
         booking.setCapacityNeeded(dto.getCapacityNeeded());
+        
 
         rentalBookingRepository.save(booking);
 
@@ -125,6 +139,17 @@ public class RentalBookingServiceImpl implements RentalBookingService {
             throw new Exception("Pick-up or drop-off location is not valid for this vendor");
         }
 
+        List<RentalAddOn> selectedAddOns = new ArrayList<>();
+        
+        double total = dto.getBaseTotalPrice();
+        if (booking.getListOfAddOns() != null) {
+            for (RentalAddOn addOn : booking.getListOfAddOns()) {
+                selectedAddOns.add(addOn);
+                total += addOn.getPrice();
+            }
+        }
+        
+        booking.setTotalPrice(total);
         booking.setVehicle(vehicle);
         booking.setPickUpTime(dto.getPickUpTime());
         booking.setDropOffTime(dto.getDropOffTime());
@@ -133,7 +158,106 @@ public class RentalBookingServiceImpl implements RentalBookingService {
         booking.setIncludeDriver(dto.isIncludeDriver());
         booking.setTransmissionNeeded(dto.getTransmissionNeeded());
         booking.setCapacityNeeded(dto.getCapacityNeeded());
-        booking.setTotalPrice(dto.getBaseTotalPrice());
+        booking.setStatus(determineBookingStatus(dto.getPickUpTime(), dto.getDropOffTime()));
+        booking.setListOfAddOns(selectedAddOns);
+        rentalBookingRepository.save(booking);
+
+        return mapToRentalBookingResponseDTO(booking);
+    }
+
+    @Override
+    public RentalBookingResponseDTO updateBookingStatus(UpdateBookingStatusRequestDTO dto) throws Exception {
+        RentalBooking booking = rentalBookingRepository.findById(dto.getBookingId())
+            .filter(b -> b.getDeletedAt() == null)
+            .orElseThrow(() -> new Exception("Booking not found"));
+
+        String currentStatus = booking.getStatus();
+        String newStatus = dto.getNewStatus();
+
+        Date now = new Date();
+        Vehicle vehicle = booking.getVehicle();
+
+        if (currentStatus.equals("Upcoming")) {
+            if (newStatus.equals("Ongoing")) {
+                List<RentalBooking> ongoingBookings = rentalBookingRepository.findByVehicle_IdAndStatusIn(
+                    vehicle.getId(), List.of("Ongoing")
+                );
+                for (RentalBooking other : ongoingBookings) {
+                    if (!other.getId().equals(booking.getId()) &&
+                        booking.getPickUpTime().before(other.getDropOffTime()) &&
+                        booking.getDropOffTime().after(other.getPickUpTime())) {
+                        throw new Exception("Kendaraan masih digunakan oleh pesanan lain yang Ongoing. Tunggu hingga pesanan sebelumnya selesai.");
+                    }
+                }
+                if (now.before(booking.getPickUpTime()))
+                    throw new Exception("Belum memasuki waktu pengambilan kendaraan");
+                if (now.after(booking.getDropOffTime()))
+                    throw new Exception("Sudah melewati waktu pengembalian kendaraan");
+                if (!vehicle.getStatus().equals("Available"))
+                    throw new Exception("Kendaraan tidak tersedia");
+                if (!vehicle.getLocation().equals(booking.getPickUpLocation()))
+                    throw new Exception("Kendaraan tidak ada di lokasi pengambilan");
+
+                booking.setStatus("Ongoing");
+                vehicle.setStatus("In Use");
+                vehicle.setLocation(booking.getPickUpLocation());
+                vehicleRepository.save(vehicle);
+            } else if (newStatus.equals("Done")) {
+                throw new Exception("Tidak bisa mengubah Upcoming menjadi Done, hanya bisa dibatalkan");
+            }
+        } else if (currentStatus.equals("Ongoing")) {
+            if (newStatus.equals("Done")) {
+                vehicle.setStatus("Available");
+                vehicle.setLocation(booking.getDropOffLocation());
+                vehicleRepository.save(vehicle);
+
+                long lateMillis = now.getTime() - booking.getDropOffTime().getTime();
+                double penalty = 0;
+                if (lateMillis > 0) {
+                    long lateHours = (lateMillis + 3599999) / 3600000; 
+                    penalty = lateHours * 20000;
+                    booking.setTotalPrice(booking.getTotalPrice() + penalty);
+                }
+                booking.setStatus("Done");
+            }
+        } else if (currentStatus.equals("Done")) {
+            throw new Exception("Status sudah Done, tidak bisa diubah lagi");
+        }
+
+        rentalBookingRepository.save(booking);
+        return mapToRentalBookingResponseDTO(booking);
+    }
+
+    @Override
+    public RentalBookingResponseDTO updateBookingAddOns(UpdateBookingAddOnsRequestDTO dto) throws Exception {
+        RentalBooking booking = rentalBookingRepository.findById(dto.getBookingId())
+            .filter(b -> b.getDeletedAt() == null)
+            .orElseThrow(() -> new Exception("Booking not found"));
+
+        if (!booking.getStatus().equals("Upcoming")) {
+            throw new Exception("Add-ons hanya bisa diubah jika status booking Upcoming");
+        }
+
+        double total = 0;
+        long diffMillis =  booking.getDropOffTime().getTime() - booking.getPickUpTime().getTime();
+        final int days = Math.max(1, (int) Math.ceil(diffMillis / (1000.0 * 60 * 60 * 24)));
+        if (booking.isIncludeDriver()) total += days * 100_000;
+        if (booking.getVehicle() != null) {
+            total += days * booking.getVehicle().getPrice();
+        }
+        
+        List<RentalAddOn> selectedAddOns = new ArrayList<>();
+        if (dto.getAddOns() != null && !dto.getAddOns().isEmpty()) {
+            for (String addOnName : dto.getAddOns()) {
+                RentalAddOn addOn = rentalAddOnRepository.findByName(addOnName)
+                    .orElseThrow(() -> new Exception("Add-on tidak ditemukan: " + addOnName));
+                selectedAddOns.add(addOn);
+                total += addOn.getPrice();
+            }
+        }
+
+        booking.setListOfAddOns(selectedAddOns);
+        booking.setTotalPrice(total);
 
         rentalBookingRepository.save(booking);
 

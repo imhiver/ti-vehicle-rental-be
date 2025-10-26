@@ -1,7 +1,9 @@
 package apap.ti._5.vehicle_rental_2306165553_be.restcontroller;
 
 import apap.ti._5.vehicle_rental_2306165553_be.restdto.request.rentalbooking.CreateRentalBookingRequestDTO;
+import apap.ti._5.vehicle_rental_2306165553_be.restdto.request.rentalbooking.UpdateBookingStatusRequestDTO;
 import apap.ti._5.vehicle_rental_2306165553_be.restdto.request.rentalbooking.UpdateRentalBookingRequestDTO;
+import apap.ti._5.vehicle_rental_2306165553_be.restdto.request.rentalbooking.UpdateBookingAddOnsRequestDTO;
 import apap.ti._5.vehicle_rental_2306165553_be.restdto.response.BaseResponseDTO;
 import apap.ti._5.vehicle_rental_2306165553_be.restdto.response.rentalbooking.RentalBookingResponseDTO;
 import apap.ti._5.vehicle_rental_2306165553_be.restservice.RentalBookingService;
@@ -27,6 +29,8 @@ public class RentalBookingController {
     public static final String UPDATE_BOOKING =  "/{id}/update";
     public static final String DELETE_BOOKING =  "/{id}/delete";
     public static final String SEARCH_BOOKING =  "/search";
+    public static final String UPDATE_BOOKING_STATUS = "/update-status";
+    public static final String UPDATE_BOOKING_ADDONS = "/update-addons";
 
 
     @GetMapping("")
@@ -140,4 +144,80 @@ public class RentalBookingController {
         baseResponse.setData(booking);
         return new ResponseEntity<>(baseResponse, HttpStatus.OK);
     }
+
+    @PutMapping(UPDATE_BOOKING_STATUS)
+    public ResponseEntity<BaseResponseDTO<RentalBookingResponseDTO>> updateBookingStatus(
+            @Valid @RequestBody UpdateBookingStatusRequestDTO dto,
+            BindingResult bindingResult) {
+
+        var baseResponse = new BaseResponseDTO<RentalBookingResponseDTO>();
+
+        if (bindingResult.hasFieldErrors()) {
+            StringBuilder errs = new StringBuilder();
+            for (FieldError fe : bindingResult.getFieldErrors()) {
+                errs.append(fe.getDefaultMessage()).append("; ");
+            }
+            baseResponse.setStatus(HttpStatus.BAD_REQUEST.value());
+            baseResponse.setMessage(errs.toString());
+            baseResponse.setTimestamp(new Date());
+            baseResponse.setData(null);
+            return new ResponseEntity<>(baseResponse, HttpStatus.BAD_REQUEST);
+        }
+
+        RentalBookingResponseDTO booking;
+        try {
+            booking = rentalBookingService.updateBookingStatus(dto);
+        } catch (Exception e) {
+            baseResponse.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
+            baseResponse.setMessage("Failed to update booking status: " + e.getMessage());
+            baseResponse.setTimestamp(new Date());
+            baseResponse.setData(null);
+            return new ResponseEntity<>(baseResponse, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+
+        baseResponse.setStatus(HttpStatus.OK.value());
+        baseResponse.setMessage("Booking status updated successfully");
+        baseResponse.setTimestamp(new Date());
+        baseResponse.setData(booking);
+        return new ResponseEntity<>(baseResponse, HttpStatus.OK);
+    }
+
+    @PutMapping(UPDATE_BOOKING_ADDONS)
+    public ResponseEntity<BaseResponseDTO<RentalBookingResponseDTO>> updateBookingAddOns(
+            @Valid @RequestBody UpdateBookingAddOnsRequestDTO dto,
+            BindingResult bindingResult) {
+
+        var baseResponse = new BaseResponseDTO<RentalBookingResponseDTO>();
+
+        if (bindingResult.hasFieldErrors()) {
+            StringBuilder errs = new StringBuilder();
+            for (FieldError fe : bindingResult.getFieldErrors()) {
+                errs.append(fe.getDefaultMessage()).append("; ");
+            }
+            baseResponse.setStatus(HttpStatus.BAD_REQUEST.value());
+            baseResponse.setMessage(errs.toString());
+            baseResponse.setTimestamp(new Date());
+            baseResponse.setData(null);
+            return new ResponseEntity<>(baseResponse, HttpStatus.BAD_REQUEST);
+        }
+
+        RentalBookingResponseDTO booking;
+        try {
+            booking = rentalBookingService.updateBookingAddOns(dto);
+        } catch (Exception e) {
+            baseResponse.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
+            baseResponse.setMessage("Failed to update booking add-ons: " + e.getMessage());
+            baseResponse.setTimestamp(new Date());
+            baseResponse.setData(null);
+            return new ResponseEntity<>(baseResponse, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+
+        baseResponse.setStatus(HttpStatus.OK.value());
+        baseResponse.setMessage("Booking add-ons updated successfully");
+        baseResponse.setTimestamp(new Date());
+        baseResponse.setData(booking);
+        return new ResponseEntity<>(baseResponse, HttpStatus.OK);
+    }
+
+    
 }
