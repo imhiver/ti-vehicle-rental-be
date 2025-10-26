@@ -24,4 +24,13 @@ public class ListController {
         return ResponseEntity.ok(listService.getAllRentalVendorNames());
     }
 
+    @GetMapping("/add-ons")
+    public ResponseEntity<List<String>> getAddOns() {
+        List<String> addOnNames = listService.getAllAddOns()
+            .stream()
+            .map(addOn -> addOn.getName())
+            .toList();
+        return ResponseEntity.ok(addOnNames);
+    }
+
 }
