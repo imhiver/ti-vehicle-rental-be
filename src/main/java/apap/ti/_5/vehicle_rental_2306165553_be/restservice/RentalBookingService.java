@@ -15,4 +15,5 @@ public interface RentalBookingService {
     RentalBookingResponseDTO updateBooking(String id, UpdateRentalBookingRequestDTO dto) throws Exception;
     RentalBookingResponseDTO updateBookingStatus(UpdateBookingStatusRequestDTO dto) throws Exception;
     RentalBookingResponseDTO updateBookingAddOns(UpdateBookingAddOnsRequestDTO dto) throws Exception;
+    void cancelBooking(String id) throws Exception;
 }

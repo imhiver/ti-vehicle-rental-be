@@ -91,6 +91,14 @@ public class RentalBookingServiceImpl implements RentalBookingService {
         }
 
         RentalBooking booking = new RentalBooking();
+        booking.setId(generateBookingId());
+        booking.setVehicle(vehicle);
+        booking.setPickUpTime(dto.getPickUpTime());
+        booking.setDropOffTime(dto.getDropOffTime());
+        booking.setPickUpLocation(dto.getPickUpLocation());
+        booking.setDropOffLocation(dto.getDropOffLocation());
+        booking.setIncludeDriver(dto.isIncludeDriver());
+        booking.setTransmissionNeeded(dto.getTransmissionNeeded());
         String status = determineBookingStatus(booking.getPickUpTime(), booking.getDropOffTime());
         if (status.equals("Ongoing")) {
             List<RentalBooking> ongoingBookings = rentalBookingRepository.findByVehicle_IdAndStatusIn(
@@ -102,15 +110,7 @@ public class RentalBookingServiceImpl implements RentalBookingService {
             vehicle.setStatus("In Use");
             
         }
-        booking.setId(generateBookingId());
-        booking.setVehicle(vehicle);
-        booking.setPickUpTime(dto.getPickUpTime());
-        booking.setDropOffTime(dto.getDropOffTime());
-        booking.setPickUpLocation(dto.getPickUpLocation());
-        booking.setDropOffLocation(dto.getDropOffLocation());
-        booking.setIncludeDriver(dto.isIncludeDriver());
-        booking.setTransmissionNeeded(dto.getTransmissionNeeded());
-        booking.setStatus(determineBookingStatus(dto.getPickUpTime(), dto.getDropOffTime()));
+        booking.setStatus(status);
         booking.setTotalPrice(total);
         booking.setListOfAddOns(selectedAddOns);
         booking.setCapacityNeeded(dto.getCapacityNeeded());
@@ -262,6 +262,35 @@ public class RentalBookingServiceImpl implements RentalBookingService {
         rentalBookingRepository.save(booking);
 
         return mapToRentalBookingResponseDTO(booking);
+    }
+
+    @Override
+    public void cancelBooking(String id) throws Exception {
+        RentalBooking booking = rentalBookingRepository.findById(id)
+            .filter(b -> b.getDeletedAt() == null)
+            .orElseThrow(() -> new Exception("Booking not found"));
+
+        Date now = new Date();
+        Vehicle vehicle = booking.getVehicle();
+
+        if (!booking.getStatus().equals("Upcoming")) {
+            throw new Exception("Penghapusan hanya bisa dilakukan ketika pesanan masih berstatus Upcoming");
+        }
+
+        if (now.before(booking.getPickUpTime())) {
+            booking.setTotalPrice(0);
+        }
+
+        booking.setStatus("Done");
+        booking.setDeletedAt(now);
+
+        if (vehicle != null) {
+            vehicle.setStatus("Available");
+            vehicle.setLocation(booking.getDropOffLocation());
+            vehicleRepository.save(vehicle);
+        }
+
+        rentalBookingRepository.save(booking);
     }
 
     private String generateBookingId() {

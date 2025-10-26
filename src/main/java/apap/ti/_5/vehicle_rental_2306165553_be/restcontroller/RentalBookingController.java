@@ -219,5 +219,22 @@ public class RentalBookingController {
         return new ResponseEntity<>(baseResponse, HttpStatus.OK);
     }
 
-    
+    @DeleteMapping(DELETE_BOOKING)
+    public ResponseEntity<BaseResponseDTO<Void>> deleteBooking(@PathVariable("id") String id) {
+        var baseResponse = new BaseResponseDTO<Void>();
+        try {
+            rentalBookingService.cancelBooking(id);
+            baseResponse.setStatus(HttpStatus.OK.value());
+            baseResponse.setMessage("Booking canceled successfully");
+            baseResponse.setTimestamp(new Date());
+            baseResponse.setData(null);
+            return new ResponseEntity<>(baseResponse, HttpStatus.OK);
+        } catch (Exception e) {
+            baseResponse.setStatus(HttpStatus.BAD_REQUEST.value());
+            baseResponse.setMessage("Failed to cancel booking: " + e.getMessage());
+            baseResponse.setTimestamp(new Date());
+            baseResponse.setData(null);
+            return new ResponseEntity<>(baseResponse, HttpStatus.BAD_REQUEST);
+        }
+    }
 }
