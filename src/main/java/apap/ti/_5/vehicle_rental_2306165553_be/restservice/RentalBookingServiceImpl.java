@@ -11,6 +11,7 @@ import apap.ti._5.vehicle_rental_2306165553_be.restdto.request.rentalbooking.Upd
 import apap.ti._5.vehicle_rental_2306165553_be.restdto.request.rentalbooking.UpdateBookingStatusRequestDTO;
 import apap.ti._5.vehicle_rental_2306165553_be.restdto.request.rentalbooking.UpdateBookingAddOnsRequestDTO;
 import apap.ti._5.vehicle_rental_2306165553_be.restdto.response.rentalbooking.RentalBookingResponseDTO;
+import apap.ti._5.vehicle_rental_2306165553_be.restdto.response.rentalbooking.BookingChartResponseDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -291,6 +292,53 @@ public class RentalBookingServiceImpl implements RentalBookingService {
         }
 
         rentalBookingRepository.save(booking);
+    }
+
+    @Override
+    public List<BookingChartResponseDTO> getBookingChart(String period, int year) {
+        List<RentalBooking> bookings = rentalBookingRepository.findAll()
+            .stream()
+            .filter(b -> b.getDeletedAt() == null && b.getCreatedAt() != null)
+            .filter(b -> {
+                Calendar cal = Calendar.getInstance();
+                cal.setTime(b.getCreatedAt());
+                return cal.get(Calendar.YEAR) == year;
+            })
+            .toList();
+
+        List<BookingChartResponseDTO> chart = new ArrayList<>();
+        if ("monthly".equalsIgnoreCase(period)) {
+            int[] monthlyCount = new int[12];
+            for (RentalBooking b : bookings) {
+                Calendar cal = Calendar.getInstance();
+                cal.setTime(b.getCreatedAt());
+                int month = cal.get(Calendar.MONTH); 
+                monthlyCount[month]++;
+            }
+            String[] monthLabels = {"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
+            for (int i = 0; i < 12; i++) {
+                BookingChartResponseDTO dto = new BookingChartResponseDTO();
+                dto.setLabel(monthLabels[i]);
+                dto.setTotalBookings(monthlyCount[i]);
+                chart.add(dto);
+            }
+        } else if ("quarterly".equalsIgnoreCase(period)) {
+            int[] quarterlyCount = new int[4];
+            for (RentalBooking b : bookings) {
+                Calendar cal = Calendar.getInstance();
+                cal.setTime(b.getCreatedAt());
+                int quarter = cal.get(Calendar.MONTH) / 3;
+                quarterlyCount[quarter]++;
+            }
+            String[] quarterLabels = {"Q1", "Q2", "Q3", "Q4"};
+            for (int i = 0; i < 4; i++) {
+                BookingChartResponseDTO dto = new BookingChartResponseDTO();
+                dto.setLabel(quarterLabels[i]);
+                dto.setTotalBookings(quarterlyCount[i]);
+                chart.add(dto);
+            }
+        }
+        return chart;
     }
 
     private String generateBookingId() {

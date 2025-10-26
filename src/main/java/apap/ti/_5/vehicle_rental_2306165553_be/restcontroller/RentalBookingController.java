@@ -6,6 +6,7 @@ import apap.ti._5.vehicle_rental_2306165553_be.restdto.request.rentalbooking.Upd
 import apap.ti._5.vehicle_rental_2306165553_be.restdto.request.rentalbooking.UpdateBookingAddOnsRequestDTO;
 import apap.ti._5.vehicle_rental_2306165553_be.restdto.response.BaseResponseDTO;
 import apap.ti._5.vehicle_rental_2306165553_be.restdto.response.rentalbooking.RentalBookingResponseDTO;
+import apap.ti._5.vehicle_rental_2306165553_be.restdto.response.rentalbooking.BookingChartResponseDTO;
 import apap.ti._5.vehicle_rental_2306165553_be.restservice.RentalBookingService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -236,5 +237,19 @@ public class RentalBookingController {
             baseResponse.setData(null);
             return new ResponseEntity<>(baseResponse, HttpStatus.BAD_REQUEST);
         }
+    }
+
+    @GetMapping("/chart")
+    public ResponseEntity<BaseResponseDTO<List<BookingChartResponseDTO>>> getBookingChart(
+        @RequestParam String period,
+        @RequestParam int year
+    ) {
+        var baseResponse = new BaseResponseDTO<List<BookingChartResponseDTO>>();
+        List<BookingChartResponseDTO> chart = rentalBookingService.getBookingChart(period, year);
+        baseResponse.setStatus(HttpStatus.OK.value());
+        baseResponse.setMessage("Booking chart retrieved successfully");
+        baseResponse.setTimestamp(new Date());
+        baseResponse.setData(chart);
+        return new ResponseEntity<>(baseResponse, HttpStatus.OK);
     }
 }
