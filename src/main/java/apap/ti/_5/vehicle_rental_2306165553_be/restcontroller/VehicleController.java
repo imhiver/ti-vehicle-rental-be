@@ -165,8 +165,20 @@ public class VehicleController {
 
     @PostMapping(SEARCH_VEHICLE)
     public ResponseEntity<BaseResponseDTO<List<VehicleSearchResultDTO>>> searchVehicles(
-            @RequestBody SearchVehicleRequestDTO dto) {
+            @Valid @RequestBody SearchVehicleRequestDTO dto,
+            BindingResult bindingResult) {
         var baseResponseDTO = new BaseResponseDTO<List<VehicleSearchResultDTO>>();
+        if (bindingResult.hasFieldErrors()) {
+            StringBuilder errorMessages = new StringBuilder();
+            for (FieldError error : bindingResult.getFieldErrors()) {
+                errorMessages.append(error.getDefaultMessage()).append("; ");
+            }
+            baseResponseDTO.setStatus(HttpStatus.BAD_REQUEST.value());
+            baseResponseDTO.setMessage(errorMessages.toString());
+            baseResponseDTO.setTimestamp(new Date());
+            baseResponseDTO.setData(null);
+            return new ResponseEntity<>(baseResponseDTO, HttpStatus.BAD_REQUEST);
+        }
         try {
             List<VehicleSearchResultDTO> vehicles = vehicleService.searchAvailableVehicles(dto);
 

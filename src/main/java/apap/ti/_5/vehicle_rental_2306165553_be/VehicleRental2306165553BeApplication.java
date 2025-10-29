@@ -58,7 +58,8 @@ public class VehicleRental2306165553BeApplication {
 				RentalAddOn rentalAddOn = new RentalAddOn();
 				rentalAddOn.setId(UUID.randomUUID());
 				rentalAddOn.setName(faker.commerce().productName());
-				rentalAddOn.setPrice(faker.number().randomDouble(2, 10, 1000));
+				double price = faker.number().numberBetween(10000, 500000);
+				rentalAddOn.setPrice(price);
 
 				rentalAddOnRepository.save(rentalAddOn);
 			}
