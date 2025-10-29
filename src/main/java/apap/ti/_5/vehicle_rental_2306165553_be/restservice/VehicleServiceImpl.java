@@ -222,7 +222,7 @@ public class VehicleServiceImpl implements VehicleService {
     }
 
     @Override
-    public List<VehicleSearchResultDTO> searchAvailableVehicles(SearchVehicleRequestDTO dto) {
+    public List<VehicleSearchResultDTO> searchAvailableVehicles(SearchVehicleRequestDTO dto, String excludeBookingId) {
         List<Vehicle> vehicles = vehicleRepository.findAll()
             .stream()
             .filter(v -> v.getDeletedAt() == null)
@@ -241,6 +241,8 @@ public class VehicleServiceImpl implements VehicleService {
                 v.getId(), List.of("Upcoming", "Ongoing")
             );
             for (RentalBooking booking : bookings) {
+                // Jika excludeBookingId ada, abaikan booking dengan id tsb
+                if (excludeBookingId != null && !excludeBookingId.isBlank() && booking.getId().equals(excludeBookingId)) continue;
                 if (dto.getPickUpTime().before(booking.getDropOffTime()) &&
                     dto.getDropOffTime().after(booking.getPickUpTime())) {
                     return false; 

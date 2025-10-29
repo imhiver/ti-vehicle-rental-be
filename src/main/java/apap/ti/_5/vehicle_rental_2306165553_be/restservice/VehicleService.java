@@ -14,5 +14,5 @@ public interface VehicleService {
     VehicleResponseDTO createVehicle(CreateVehicleRequestDTO dto) throws Exception;
     VehicleResponseDTO updateVehicle(String id, UpdateVehicleRequestDTO dto) throws Exception;
     void deleteVehicle(String id) throws Exception;
-    List<VehicleSearchResultDTO> searchAvailableVehicles(SearchVehicleRequestDTO dto);
+    List<VehicleSearchResultDTO> searchAvailableVehicles(SearchVehicleRequestDTO dto, String excludeBookingId);
 }

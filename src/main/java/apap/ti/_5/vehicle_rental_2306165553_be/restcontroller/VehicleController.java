@@ -166,6 +166,7 @@ public class VehicleController {
     @PostMapping(SEARCH_VEHICLE)
     public ResponseEntity<BaseResponseDTO<List<VehicleSearchResultDTO>>> searchVehicles(
             @Valid @RequestBody SearchVehicleRequestDTO dto,
+            @RequestParam(required = false) String excludeBookingId,
             BindingResult bindingResult) {
         var baseResponseDTO = new BaseResponseDTO<List<VehicleSearchResultDTO>>();
         if (bindingResult.hasFieldErrors()) {
@@ -180,7 +181,7 @@ public class VehicleController {
             return new ResponseEntity<>(baseResponseDTO, HttpStatus.BAD_REQUEST);
         }
         try {
-            List<VehicleSearchResultDTO> vehicles = vehicleService.searchAvailableVehicles(dto);
+            List<VehicleSearchResultDTO> vehicles = vehicleService.searchAvailableVehicles(dto, excludeBookingId);
 
             baseResponseDTO.setStatus(HttpStatus.OK.value());
             baseResponseDTO.setMessage("Search result retrieved successfully");

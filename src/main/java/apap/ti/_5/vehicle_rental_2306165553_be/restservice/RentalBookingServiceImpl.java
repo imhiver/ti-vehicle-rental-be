@@ -162,7 +162,7 @@ public class RentalBookingServiceImpl implements RentalBookingService {
         booking.setIncludeDriver(dto.isIncludeDriver());
         booking.setTransmissionNeeded(dto.getTransmissionNeeded());
         booking.setCapacityNeeded(dto.getCapacityNeeded());
-        booking.setStatus(determineBookingStatus(dto.getPickUpTime(), dto.getDropOffTime()));
+        booking.setStatus(booking.getStatus());
         booking.setListOfAddOns(selectedAddOns);
         rentalBookingRepository.save(booking);
 
