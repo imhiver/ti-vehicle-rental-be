@@ -241,7 +241,6 @@ public class VehicleServiceImpl implements VehicleService {
                 v.getId(), List.of("Upcoming", "Ongoing")
             );
             for (RentalBooking booking : bookings) {
-                // Jika excludeBookingId ada, abaikan booking dengan id tsb
                 if (excludeBookingId != null && !excludeBookingId.isBlank() && booking.getId().equals(excludeBookingId)) continue;
                 if (dto.getPickUpTime().before(booking.getDropOffTime()) &&
                     dto.getDropOffTime().after(booking.getPickUpTime())) {

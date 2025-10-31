@@ -166,8 +166,8 @@ public class VehicleController {
     @PostMapping(SEARCH_VEHICLE)
     public ResponseEntity<BaseResponseDTO<List<VehicleSearchResultDTO>>> searchVehicles(
             @Valid @RequestBody SearchVehicleRequestDTO dto,
-            @RequestParam(required = false) String excludeBookingId,
-            BindingResult bindingResult) {
+            BindingResult bindingResult,
+            @RequestParam(required = false) String excludeBookingId) {
         var baseResponseDTO = new BaseResponseDTO<List<VehicleSearchResultDTO>>();
         if (bindingResult.hasFieldErrors()) {
             StringBuilder errorMessages = new StringBuilder();
