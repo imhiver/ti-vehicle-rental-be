@@ -318,7 +318,7 @@ public class RentalBookingServiceImpl implements RentalBookingService {
                 int month = cal.get(Calendar.MONTH); 
                 monthlyCount[month]++;
             }
-            String[] monthLabels = {"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
+            String[] monthLabels = {"January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"};
             for (int i = 0; i < 12; i++) {
                 BookingChartResponseDTO dto = new BookingChartResponseDTO();
                 dto.setLabel(monthLabels[i]);
