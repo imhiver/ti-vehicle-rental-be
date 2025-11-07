@@ -175,6 +175,10 @@ public class VehicleServiceImpl implements VehicleService {
             errors.add("Tahun keluaran kendaraan tidak valid");
         }
 
+        if (!vehicle.getLicencePlate().equals(dto.getLicencePlate()) && vehicleRepository.existsByLicencePlate(dto.getLicencePlate())) {
+            errors.add("Nomor plat sudah terdaftar");
+        }
+
         Optional<RentalVendor> vendorOpt = findVendorByName(dto.getRentalVendorName());
         if (vendorOpt.isEmpty()) {
             errors.add("Vendor tidak ditemukan");

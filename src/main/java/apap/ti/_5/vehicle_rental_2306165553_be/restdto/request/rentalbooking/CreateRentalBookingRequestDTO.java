@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
 import lombok.Data;
 
 import java.util.Date;
@@ -32,7 +31,6 @@ public class CreateRentalBookingRequestDTO {
     @NotNull(message = "Include driver field is required")
     private boolean includeDriver;
 
-    @Size(max = 5, message = "Maximum 5 add-ons allowed")
     private List<@NotBlank(message = "Add-on cannot be blank") String> addOns;
 
     @Min(value = 1, message = "Capacity needed must be at least 1")
