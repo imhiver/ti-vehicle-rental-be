@@ -52,6 +52,53 @@ public class VehicleControllerTest {
     }
 
     @Test
+    void testGetAllVehicles_withSearch() throws Exception {
+        VehicleResponseDTO dto = new VehicleResponseDTO();
+        dto.setId("VEH0001");
+        dto.setBrand("Toyota");
+        List<VehicleResponseDTO> list = List.of(dto);
+
+        Mockito.when(vehicleService.getAllVehicle("Toyota", null)).thenReturn(list);
+
+        mockMvc.perform(get("/vehicles?search=Toyota"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data[0].id").value("VEH0001"))
+                .andExpect(jsonPath("$.data[0].brand").value("Toyota"));
+    }
+
+    @Test
+    void testGetAllVehicles_withFilter() throws Exception {
+        VehicleResponseDTO dto = new VehicleResponseDTO();
+        dto.setId("VEH0001");
+        dto.setType("SUV");
+        List<VehicleResponseDTO> list = List.of(dto);
+
+        Mockito.when(vehicleService.getAllVehicle(null, "SUV")).thenReturn(list);
+
+        mockMvc.perform(get("/vehicles?filterByType=SUV"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data[0].id").value("VEH0001"))
+                .andExpect(jsonPath("$.data[0].type").value("SUV"));
+    }
+
+    @Test
+    void testGetAllVehicles_withSearchAndFilter() throws Exception {
+        VehicleResponseDTO dto = new VehicleResponseDTO();
+        dto.setId("VEH0001");
+        dto.setBrand("Toyota");
+        dto.setType("SUV");
+        List<VehicleResponseDTO> list = List.of(dto);
+
+        Mockito.when(vehicleService.getAllVehicle("Toyota", "SUV")).thenReturn(list);
+
+        mockMvc.perform(get("/vehicles?search=Toyota&filterByType=SUV"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data[0].id").value("VEH0001"))
+                .andExpect(jsonPath("$.data[0].brand").value("Toyota"))
+                .andExpect(jsonPath("$.data[0].type").value("SUV"));
+    }
+
+    @Test
     void testGetVehicleById_found() throws Exception {
         VehicleResponseDTO dto = new VehicleResponseDTO();
         dto.setId("VEH0001");
@@ -183,12 +230,14 @@ public class VehicleControllerTest {
         req.setCapacityNeeded(5);
         req.setTransmissionNeeded("Automatic");
         req.setIncludeDriver(true);
+        req.setPickUpTime(new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 24));
+        req.setDropOffTime(new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 48));
 
         VehicleSearchResultDTO result = new VehicleSearchResultDTO();
         result.setId("VEH0001");
         result.setTotalPrice(1000000.0);
 
-        Mockito.when(vehicleService.searchAvailableVehicles(any(SearchVehicleRequestDTO.class)))
+        Mockito.when(vehicleService.searchAvailableVehicles(any(SearchVehicleRequestDTO.class), eq(null)))
                 .thenReturn(List.of(result));
 
         mockMvc.perform(post("/vehicles/search")
@@ -197,5 +246,16 @@ public class VehicleControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data[0].id").value("VEH0001"))
                 .andExpect(jsonPath("$.data[0].totalPrice").value(1000000.0));
+    }
+
+    @Test
+    void testSearchVehicles_invalid() throws Exception {
+        SearchVehicleRequestDTO req = new SearchVehicleRequestDTO();
+    
+        mockMvc.perform(post("/vehicles/search")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(req)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.data").isEmpty());
     }
 }

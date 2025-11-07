@@ -4,6 +4,7 @@ import apap.ti._5.vehicle_rental_2306165553_be.model.RentalAddOn;
 import apap.ti._5.vehicle_rental_2306165553_be.model.RentalVendor;
 import apap.ti._5.vehicle_rental_2306165553_be.repository.RentalAddOnRepository;
 import apap.ti._5.vehicle_rental_2306165553_be.repository.RentalVendorRepository;
+import apap.ti._5.vehicle_rental_2306165553_be.restdto.response.RentalVendorListDTO;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -57,6 +58,24 @@ public class ListServiceTest {
 
         List<String> names = listService.getAllRentalVendorNames();
         assertEquals(List.of("VendorA", "VendorB"), names);
+    }
+
+    @Test
+    void testGetAllRentalVendorDTOs() {
+        RentalVendor vendor1 = new RentalVendor();
+        vendor1.setName("VendorA");
+        vendor1.setListOfLocations(List.of("Jakarta", "Bandung"));
+        RentalVendor vendor2 = new RentalVendor();
+        vendor2.setName("VendorB");
+        vendor2.setListOfLocations(List.of("Surabaya", "Malang"));
+        Mockito.when(rentalVendorRepository.findAll()).thenReturn(List.of(vendor1, vendor2));
+
+        List<RentalVendorListDTO> vendors = listService.getAllRentalVendorDTOs();
+        assertEquals(2, vendors.size());
+        assertEquals("VendorA", vendors.get(0).getName());
+        assertEquals(List.of("Jakarta", "Bandung"), vendors.get(0).getListOfLocations());
+        assertEquals("VendorB", vendors.get(1).getName());
+        assertEquals(List.of("Surabaya", "Malang"), vendors.get(1).getListOfLocations());
     }
 
     @Test

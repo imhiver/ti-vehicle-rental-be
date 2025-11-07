@@ -1,6 +1,5 @@
 package apap.ti._5.vehicle_rental_2306165553_be.restcontroller;
 
-import apap.ti._5.vehicle_rental_2306165553_be.model.RentalAddOn;
 import apap.ti._5.vehicle_rental_2306165553_be.restservice.ListService;
 import apap.ti._5.vehicle_rental_2306165553_be.restdto.response.BaseResponseDTO;
 import apap.ti._5.vehicle_rental_2306165553_be.restdto.response.RentalVendorListDTO;

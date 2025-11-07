@@ -2,7 +2,6 @@ package apap.ti._5.vehicle_rental_2306165553_be.restservice;
 
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
-import apap.ti._5.vehicle_rental_2306165553_be.model.RentalVendor;
 import apap.ti._5.vehicle_rental_2306165553_be.repository.RentalVendorRepository;
 import apap.ti._5.vehicle_rental_2306165553_be.model.RentalAddOn;
 import apap.ti._5.vehicle_rental_2306165553_be.repository.RentalAddOnRepository;

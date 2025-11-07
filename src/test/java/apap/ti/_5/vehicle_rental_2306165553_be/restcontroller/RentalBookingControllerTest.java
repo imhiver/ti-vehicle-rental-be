@@ -17,6 +17,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.util.Date;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -53,6 +54,21 @@ public class RentalBookingControllerTest {
     }
 
     @Test
+    void testGetAllBookings_withSearch() throws Exception {
+        RentalBookingResponseDTO dto = new RentalBookingResponseDTO();
+        dto.setId("VR0001");
+        dto.setStatus("Upcoming");
+        List<RentalBookingResponseDTO> list = List.of(dto);
+
+        Mockito.when(rentalBookingService.getAllBookings("VR0001")).thenReturn(list);
+
+        mockMvc.perform(get("/bookings?search=VR0001"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data[0].id").value("VR0001"))
+                .andExpect(jsonPath("$.data[0].status").value("Upcoming"));
+    }
+
+    @Test
     void testGetBookingById_found() throws Exception {
         RentalBookingResponseDTO dto = new RentalBookingResponseDTO();
         dto.setId("VR0001");
@@ -82,8 +98,8 @@ public class RentalBookingControllerTest {
         req.setVehicleId("VEH0001");
         req.setPickUpLocation("Jakarta");
         req.setDropOffLocation("Bandung");
-        req.setPickUpTime(new java.util.Date(System.currentTimeMillis() + 1000 * 60 * 60 * 24)); // besok
-        req.setDropOffTime(new java.util.Date(System.currentTimeMillis() + 1000 * 60 * 60 * 48)); // lusa
+        req.setPickUpTime(new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 24)); 
+        req.setDropOffTime(new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 48)); 
         req.setIncludeDriver(true);
         req.setAddOns(List.of("GPS"));
         req.setCapacityNeeded(1);
@@ -120,8 +136,8 @@ public class RentalBookingControllerTest {
         req.setVehicleId("VEH0001");
         req.setPickUpLocation("Jakarta");
         req.setDropOffLocation("Bandung");
-        req.setPickUpTime(new java.util.Date(System.currentTimeMillis() + 1000 * 60 * 60 * 24));
-        req.setDropOffTime(new java.util.Date(System.currentTimeMillis() + 1000 * 60 * 60 * 48));
+        req.setPickUpTime(new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 24));
+        req.setDropOffTime(new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 48));
         req.setIncludeDriver(true);
         req.setTransmissionNeeded("Automatic");
         req.setCapacityNeeded(1);

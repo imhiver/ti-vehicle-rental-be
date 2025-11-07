@@ -226,8 +226,8 @@ public class VehicleServiceImpl implements VehicleService {
         List<Vehicle> vehicles = vehicleRepository.findAll()
             .stream()
             .filter(v -> v.getDeletedAt() == null)
-            // Remove the status filter - we'll check availability through bookings instead
-            .filter(v -> !v.getStatus().equalsIgnoreCase("Unavailable")) // Only exclude permanently unavailable vehicles
+            
+            .filter(v -> !v.getStatus().equalsIgnoreCase("Unavailable")) 
             .filter(v -> {
                 if (v.getRentalVendor() == null) return false;
                 List<String> locations = v.getRentalVendor().getListOfLocations();
@@ -237,7 +237,7 @@ public class VehicleServiceImpl implements VehicleService {
             .filter(v -> v.getTransmission().equalsIgnoreCase(dto.getTransmissionNeeded()))
             .collect(Collectors.toList());
 
-        // Check for booking conflicts during the requested period
+        
         vehicles = vehicles.stream().filter(v -> {
             List<RentalBooking> bookings = rentalBookingRepository.findByVehicle_IdAndStatusIn(
                 v.getId(), List.of("Upcoming", "Ongoing")

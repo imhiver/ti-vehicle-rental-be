@@ -2,11 +2,9 @@ package apap.ti._5.vehicle_rental_2306165553_be.restservice;
 
 import apap.ti._5.vehicle_rental_2306165553_be.model.Vehicle;
 import apap.ti._5.vehicle_rental_2306165553_be.model.RentalVendor;
-import apap.ti._5.vehicle_rental_2306165553_be.model.RentalBooking;
 import apap.ti._5.vehicle_rental_2306165553_be.repository.VehicleRepository;
 import apap.ti._5.vehicle_rental_2306165553_be.repository.RentalVendorRepository;
 import apap.ti._5.vehicle_rental_2306165553_be.repository.RentalBookingRepository;
-import apap.ti._5.vehicle_rental_2306165553_be.restservice.ListService;
 import apap.ti._5.vehicle_rental_2306165553_be.restdto.request.vehicle.CreateVehicleRequestDTO;
 import apap.ti._5.vehicle_rental_2306165553_be.restdto.request.vehicle.UpdateVehicleRequestDTO;
 import apap.ti._5.vehicle_rental_2306165553_be.restdto.request.vehicle.SearchVehicleRequestDTO;
@@ -79,6 +77,93 @@ public class VehicleServiceTest {
     }
 
     @Test
+    void testGetAllVehicle_withSearch() {
+        Vehicle vehicle2 = new Vehicle();
+        vehicle2.setId("VEH0002");
+        vehicle2.setRentalVendor(vendor);
+        vehicle2.setType("Sedan");
+        vehicle2.setBrand("Honda");
+        vehicle2.setModel("Civic");
+        vehicle2.setLocation("Surabaya");
+        vehicle2.setLicencePlate("L5678ABC");
+        vehicle2.setDeletedAt(null);
+
+        when(vehicleRepository.findAll()).thenReturn(List.of(vehicle, vehicle2));
+
+        
+        List<VehicleResponseDTO> result = vehicleService.getAllVehicle("Toyota", null);
+        assertEquals(1, result.size());
+        assertEquals("VEH0001", result.get(0).getId());
+
+        
+        result = vehicleService.getAllVehicle("Sedan", null);
+        assertEquals(1, result.size());
+        assertEquals("VEH0002", result.get(0).getId());
+
+        
+        result = vehicleService.getAllVehicle("B1234", null);
+        assertEquals(1, result.size());
+        assertEquals("VEH0001", result.get(0).getId());
+
+        
+        result = vehicleService.getAllVehicle("Nonexistent", null);
+        assertEquals(0, result.size());
+
+        
+        result = vehicleService.getAllVehicle("toyota", null);
+        assertEquals(1, result.size());
+        assertEquals("VEH0001", result.get(0).getId());
+    }
+
+    @Test
+    void testGetAllVehicle_withFilter() {
+        Vehicle vehicle2 = new Vehicle();
+        vehicle2.setId("VEH0002");
+        vehicle2.setRentalVendor(vendor);
+        vehicle2.setType("Sedan");
+        vehicle2.setBrand("Honda");
+        vehicle2.setDeletedAt(null);
+
+        when(vehicleRepository.findAll()).thenReturn(List.of(vehicle, vehicle2));
+
+        
+        List<VehicleResponseDTO> result = vehicleService.getAllVehicle(null, "SUV");
+        assertEquals(1, result.size());
+        assertEquals("VEH0001", result.get(0).getId());
+
+        
+        result = vehicleService.getAllVehicle(null, "Sedan");
+        assertEquals(1, result.size());
+        assertEquals("VEH0002", result.get(0).getId());
+
+        
+        result = vehicleService.getAllVehicle(null, "MPV");
+        assertEquals(0, result.size());
+    }
+
+    @Test
+    void testGetAllVehicle_withSearchAndFilter() {
+        Vehicle vehicle2 = new Vehicle();
+        vehicle2.setId("VEH0002");
+        vehicle2.setRentalVendor(vendor);
+        vehicle2.setType("SUV");
+        vehicle2.setBrand("Honda");
+        vehicle2.setModel("CRV");
+        vehicle2.setDeletedAt(null);
+
+        when(vehicleRepository.findAll()).thenReturn(List.of(vehicle, vehicle2));
+
+        
+        List<VehicleResponseDTO> result = vehicleService.getAllVehicle("Honda", "SUV");
+        assertEquals(1, result.size());
+        assertEquals("VEH0002", result.get(0).getId());
+
+        
+        result = vehicleService.getAllVehicle("Toyota", "Sedan");
+        assertEquals(0, result.size());
+    }
+
+    @Test
     void testGetVehicleById_found() throws Exception {
         when(vehicleRepository.findById("VEH0001")).thenReturn(Optional.of(vehicle));
         VehicleResponseDTO dto = vehicleService.getVehicleById("VEH0001");
@@ -112,7 +197,7 @@ public class VehicleServiceTest {
         when(listService.getTransmissionOptions()).thenReturn(List.of("Automatic", "Manual"));
         when(listService.getFuelTypeOptions()).thenReturn(List.of("Diesel", "Bensin"));
         when(vehicleRepository.existsByLicencePlate("B1234XYZ")).thenReturn(false);
-        when(rentalVendorRepository.findAll()).thenReturn(List.of(vendor)); // <-- Fix: stub vendor lookup
+        when(rentalVendorRepository.findAll()).thenReturn(List.of(vendor)); 
         when(vehicleRepository.findAll(any(Sort.class))).thenReturn(List.of(vehicle));
         when(vehicleRepository.save(any(Vehicle.class))).thenAnswer(inv -> inv.getArgument(0));
 
@@ -227,7 +312,7 @@ public class VehicleServiceTest {
         when(vehicleRepository.findAll()).thenReturn(List.of(vehicle));
         when(rentalBookingRepository.findByVehicle_IdAndStatusIn(anyString(), anyList())).thenReturn(Collections.emptyList());
 
-        List<VehicleSearchResultDTO> results = vehicleService.searchAvailableVehicles(dto);
+        List<VehicleSearchResultDTO> results = vehicleService.searchAvailableVehicles(dto, null);
         assertEquals(1, results.size());
         assertEquals("VEH0001", results.get(0).getId());
         assertTrue(results.get(0).getTotalPrice() > 0);
