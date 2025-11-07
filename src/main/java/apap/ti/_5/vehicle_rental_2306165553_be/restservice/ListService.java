@@ -2,6 +2,7 @@ package apap.ti._5.vehicle_rental_2306165553_be.restservice;
 
 import java.util.List;
 import apap.ti._5.vehicle_rental_2306165553_be.model.RentalAddOn;
+import apap.ti._5.vehicle_rental_2306165553_be.restdto.response.RentalVendorListDTO;
 
 public interface ListService {
     List<String> getLocationList();
@@ -12,4 +13,5 @@ public interface ListService {
     List<String> getVehicleStatusOptions();
     List<String> getBookingStatusOptions();
     List<RentalAddOn> getAllAddOns();
+    List<RentalVendorListDTO> getAllRentalVendorDTOs();
 }

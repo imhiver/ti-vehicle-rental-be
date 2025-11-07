@@ -1,8 +1,8 @@
 package apap.ti._5.vehicle_rental_2306165553_be.restdto.request.rentalbooking;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 import java.util.Date;
-import java.util.List;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
@@ -13,9 +13,11 @@ public class UpdateRentalBookingRequestDTO {
     private String vehicleId;
 
     @NotNull(message = "Pick up time tidak boleh kosong")
+    @JsonFormat(timezone = "Asia/Jakarta")
     private Date pickUpTime;
 
     @NotNull(message = "Drop off time tidak boleh kosong")
+    @JsonFormat(timezone = "Asia/Jakarta")
     private Date dropOffTime;
 
     @NotBlank(message = "Pick up location tidak boleh kosong")

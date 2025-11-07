@@ -1,5 +1,6 @@
 package apap.ti._5.vehicle_rental_2306165553_be.restdto.request.rentalbooking;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -21,9 +22,11 @@ public class CreateRentalBookingRequestDTO {
     private String dropOffLocation;
 
     @NotNull(message = "Pick up time is required")
+    @JsonFormat(timezone = "Asia/Jakarta")
     private Date pickUpTime;
 
     @NotNull(message = "Drop off time is required")
+    @JsonFormat(timezone = "Asia/Jakarta")
     private Date dropOffTime;
 
     @NotNull(message = "Include driver field is required")

@@ -10,3 +10,5 @@ spring:
   jpa:
     hibernate:
       ddl-auto: create-drop
+  jackson:
+    time-zone: Asia/Jakarta

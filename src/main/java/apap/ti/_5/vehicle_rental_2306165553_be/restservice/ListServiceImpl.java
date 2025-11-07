@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import apap.ti._5.vehicle_rental_2306165553_be.restdto.response.RentalVendorListDTO;
 
 @Service
 public class ListServiceImpl implements ListService {
@@ -36,6 +37,14 @@ public class ListServiceImpl implements ListService {
         return rentalVendorRepository.findAll()
             .stream()
             .map(v -> v.getName())
+            .toList();
+    }
+
+    @Override
+    public List<RentalVendorListDTO> getAllRentalVendorDTOs() {
+        return rentalVendorRepository.findAll()
+            .stream()
+            .map(v -> new RentalVendorListDTO(v.getName(), v.getListOfLocations()))
             .toList();
     }
 

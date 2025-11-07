@@ -17,10 +17,19 @@ import java.util.List;
 import java.util.Locale;
 import java.util.ArrayList;
 import java.util.UUID;
+import java.util.TimeZone;
+
+import jakarta.annotation.PostConstruct;
 
 @SpringBootApplication
 @EnableJpaAuditing
 public class VehicleRental2306165553BeApplication {
+
+	@PostConstruct
+	public void init() {
+		// Set default timezone to Asia/Jakarta (WIB - UTC+7)
+		TimeZone.setDefault(TimeZone.getTimeZone("Asia/Jakarta"));
+	}
 
 	public static void main(String[] args) {
 		SpringApplication.run(VehicleRental2306165553BeApplication.class, args);

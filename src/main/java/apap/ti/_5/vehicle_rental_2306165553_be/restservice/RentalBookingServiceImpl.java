@@ -38,6 +38,7 @@ public class RentalBookingServiceImpl implements RentalBookingService {
         List<RentalBooking> bookings = rentalBookingRepository.findAll()
             .stream()
             .filter(b -> b.getDeletedAt() == null)
+            .sorted((b1, b2) -> b2.getCreatedAt().compareTo(b1.getCreatedAt()))
             .collect(Collectors.toList());
 
         if (search != null && !search.isEmpty()) {
@@ -70,6 +71,8 @@ public class RentalBookingServiceImpl implements RentalBookingService {
 
     @Override
     public RentalBookingResponseDTO createBooking(CreateRentalBookingRequestDTO dto) throws Exception {
+        validateBookingTimes(dto.getPickUpTime(), dto.getDropOffTime());
+        
         Vehicle vehicle = vehicleRepository.findById(dto.getVehicleId())
             .filter(v -> v.getDeletedAt() == null)
             .orElseThrow(() -> new Exception("Vehicle not found"));
@@ -127,6 +130,8 @@ public class RentalBookingServiceImpl implements RentalBookingService {
 
     @Override
     public RentalBookingResponseDTO updateBooking(String id, UpdateRentalBookingRequestDTO dto) throws Exception {
+        validateBookingTimes(dto.getPickUpTime(), dto.getDropOffTime());
+        
         RentalBooking booking = rentalBookingRepository.findById(id)
             .filter(b -> b.getDeletedAt() == null)
             .orElseThrow(() -> new Exception("Booking not found"));
@@ -179,6 +184,8 @@ public class RentalBookingServiceImpl implements RentalBookingService {
         String newStatus = dto.getNewStatus();
 
         Date now = new Date();
+        Date pickUpTime = booking.getPickUpTime();
+        Date dropOffTime = booking.getDropOffTime();
         Vehicle vehicle = booking.getVehicle();
 
         if (currentStatus.equals("Upcoming")) {
@@ -193,9 +200,9 @@ public class RentalBookingServiceImpl implements RentalBookingService {
                         throw new Exception("Kendaraan masih digunakan oleh pesanan lain yang Ongoing. Tunggu hingga pesanan sebelumnya selesai.");
                     }
                 }
-                if (now.before(booking.getPickUpTime()))
+                if (now.getTime() < pickUpTime.getTime())
                     throw new Exception("Belum memasuki waktu pengambilan kendaraan");
-                if (now.after(booking.getDropOffTime()))
+                if (now.getTime() > dropOffTime.getTime())
                     throw new Exception("Sudah melewati waktu pengembalian kendaraan");
                 if (!vehicle.getStatus().equals("Available"))
                     throw new Exception("Kendaraan tidak tersedia");
@@ -215,7 +222,7 @@ public class RentalBookingServiceImpl implements RentalBookingService {
                 vehicle.setLocation(booking.getDropOffLocation());
                 vehicleRepository.save(vehicle);
 
-                long lateMillis = now.getTime() - booking.getDropOffTime().getTime();
+                long lateMillis = now.getTime() - dropOffTime.getTime();
                 double penalty = 0;
                 if (lateMillis > 0) {
                     long lateHours = (lateMillis + 3599999) / 3600000; 
@@ -388,6 +395,18 @@ public class RentalBookingServiceImpl implements RentalBookingService {
             return "Done";
         } else {
             return "Ongoing";
+        }
+    }
+
+    private void validateBookingTimes(Date pickUpTime, Date dropOffTime) throws Exception {
+        Date now = new Date();
+
+        if (pickUpTime.before(now)) {
+            throw new Exception("Waktu pengambilan kendaraan tidak boleh di masa lalu");
+        }
+        
+        if (!pickUpTime.before(dropOffTime)) {
+            throw new Exception("Waktu pengambilan kendaraan harus sebelum waktu pengembalian kendaraan");
         }
     }
 }
